@@ -27,8 +27,8 @@ export default function DashboardPage() {
                 <p className="text-4xl font-bold text-slate-800">{stat.value}</p>
               </div>
               <div className={`p-3 rounded-xl transition-colors ${stat.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' :
-                  stat.color === 'green' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' :
-                    'bg-purple-50 text-purple-600 group-hover:bg-purple-100'
+                stat.color === 'green' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' :
+                  'bg-purple-50 text-purple-600 group-hover:bg-purple-100'
                 }`}>
                 <stat.icon size={24} />
               </div>

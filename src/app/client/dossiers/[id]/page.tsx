@@ -120,8 +120,8 @@ export default function DossierDetailPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
-                  ? 'text-blue-700 border-blue-600 bg-blue-50/50'
-                  : 'text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50'
+                ? 'text-blue-700 border-blue-600 bg-blue-50/50'
+                : 'text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50'
                 }`}
             >
               <tab.icon size={15} />
@@ -155,14 +155,13 @@ export default function DossierDetailPage() {
                     <button
                       key={f}
                       onClick={() => setFilterStatus(f)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                        filterStatus === f 
-                          ? 'bg-slate-800 text-white' 
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${filterStatus === f
+                          ? 'bg-slate-800 text-white'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
+                        }`}
                     >
-                      {f === 'Alle' ? `Alle (${deelopdrachten.length})` : 
-                       `${f.replace('_', ' ')} (${deelopdrachten.filter(d => d.status === f).length})`}
+                      {f === 'Alle' ? `Alle (${deelopdrachten.length})` :
+                        `${f.replace('_', ' ')} (${deelopdrachten.filter(d => d.status === f).length})`}
                     </button>
                   ))}
                 </div>
@@ -179,43 +178,43 @@ export default function DossierDetailPage() {
                   {deelopdrachten
                     .filter(werk => filterStatus === 'Alle' || werk.status === filterStatus)
                     .map(werk => (
-                    <div key={werk.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col group cursor-pointer">
-                      <div className="p-5 border-b border-slate-100">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="text-xs font-mono font-bold text-slate-400">{werk.id}</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${werk.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
+                      <div key={werk.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col group cursor-pointer">
+                        <div className="p-5 border-b border-slate-100">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-xs font-mono font-bold text-slate-400">{werk.id}</span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${werk.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
                               werk.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
                                 werk.status === 'Opgeleverd' ? 'bg-emerald-100 text-emerald-700' :
                                   'bg-slate-100 text-slate-600'
-                            }`}>
-                            {werk.status.replace('_', ' ')}
+                              }`}>
+                              {werk.status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">{werk.title}</h4>
+                          <p className="text-sm text-slate-500 mt-2 line-clamp-2">{werk.description}</p>
+                        </div>
+
+                        <div className="p-5 bg-slate-50 flex-1 space-y-3">
+                          <div>
+                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verantwoordelijkheid</p>
+                            <p className="text-xs font-medium text-slate-700">{werk.responsibility}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verwacht Resultaat (SLA)</p>
+                            <p className="text-xs font-medium text-slate-700">{werk.expectedResult}</p>
+                          </div>
+                        </div>
+
+                        <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                            <Clock size={13} /> {new Date(werk.startDate).toLocaleDateString('nl-NL')}
                           </span>
-                        </div>
-                        <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">{werk.title}</h4>
-                        <p className="text-sm text-slate-500 mt-2 line-clamp-2">{werk.description}</p>
-                      </div>
-
-                      <div className="p-5 bg-slate-50 flex-1 space-y-3">
-                        <div>
-                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verantwoordelijkheid</p>
-                          <p className="text-xs font-medium text-slate-700">{werk.responsibility}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verwacht Resultaat (SLA)</p>
-                          <p className="text-xs font-medium text-slate-700">{werk.expectedResult}</p>
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+                            <MessageSquare size={13} /> Details & Chat
+                          </div>
                         </div>
                       </div>
-
-                      <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                          <Clock size={13} /> {new Date(werk.startDate).toLocaleDateString('nl-NL')}
-                        </span>
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600">
-                          <MessageSquare size={13} /> Details & Chat
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </div>
