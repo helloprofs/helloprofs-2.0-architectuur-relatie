@@ -1,5 +1,9 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { mockDossiers, mockPurchaseOrders, mockRelations, mockProjects, DossierStatus } from "@/lib/mock-data";
-import { Search, Filter, AlertCircle, History, FolderKanban } from "lucide-react";
+import { Search, Filter, AlertCircle, History, FolderKanban, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 function DossierStatusBadge({ status }: { status: DossierStatus }) {
   const styles: Record<DossierStatus, string> = {
@@ -20,6 +24,8 @@ function DossierStatusBadge({ status }: { status: DossierStatus }) {
 }
 
 export default function DossiersPage() {
+  const router = useRouter();
+
   const getPurchaseOrder = (id: string) =>
     mockPurchaseOrders.find(po => po.id === id);
 
@@ -76,15 +82,20 @@ export default function DossiersPage() {
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Relatie</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Dossierstatus</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Tijdlijn</th>
+                <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {mockDossiers.map(dossier => (
-                <tr key={dossier.id} className="hover:bg-slate-50 transition-colors cursor-pointer group">
+                <tr 
+                  key={dossier.id} 
+                  onClick={() => router.push(`/client/dossiers/${dossier.id}`)}
+                  className="hover:bg-slate-50 transition-colors cursor-pointer group"
+                >
                   <td className="px-6 py-4">
-                    <span className="text-sm font-mono font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                    <Link href={`/client/dossiers/${dossier.id}`} className="text-sm font-mono font-bold text-slate-700 group-hover:text-blue-600 transition-colors hover:underline">
                       {dossier.id}
-                    </span>
+                    </Link>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -114,6 +125,11 @@ export default function DossiersPage() {
                       <History size={13} />
                       {dossier.historyCount} stappen
                     </button>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800 transition-colors">
+                      Bekijk <ArrowRight size={13} />
+                    </span>
                   </td>
                 </tr>
               ))}

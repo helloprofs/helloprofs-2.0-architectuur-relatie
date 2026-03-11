@@ -39,7 +39,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Content grids */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Active Projects - LEFT */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">

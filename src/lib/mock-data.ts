@@ -139,34 +139,102 @@ export type DossierStatus =
 export interface Dossier {
   id: string;
   purchaseOrderId: string;
-  relationId: string; // Degene met wie het dossier is gesloten
+  relationId: string;
   status: DossierStatus;
   historyCount: number;
 }
 
-// Resultaat van de Purchase Orders die verstuurd zijn
 export const mockDossiers: Dossier[] = [
-  // PO-2001 was verstuurd naar Jan (R-001) en Peter (R-003) -> 2 Dossiers
   {
     id: 'D-3001',
     purchaseOrderId: 'PO-2001',
-    relationId: 'R-001', // Jan de Bouwer
-    status: 'Aanbod_Verstuurd', // Jan heeft gereageerd
+    relationId: 'R-001',
+    status: 'Aanbod_Verstuurd',
     historyCount: 3
   },
   {
     id: 'D-3002',
     purchaseOrderId: 'PO-2001',
-    relationId: 'R-003', // Peter de Schilder
-    status: 'Inkoopopdracht_Geweigerd', // Heeft afgezegd, maar dossier BLIJFT bestaan (Audittrail)
+    relationId: 'R-003',
+    status: 'Inkoopopdracht_Geweigerd',
     historyCount: 2
   },
-  // PO-2002 was verstuurd naar Electra Fix (R-002)
   {
     id: 'D-3003',
     purchaseOrderId: 'PO-2002',
-    relationId: 'R-002', // Electra Fix
-    status: 'Inkoopopdracht_Verstuurd', // Wacht nog op antwoord
+    relationId: 'R-002',
+    status: 'Inkoopopdracht_Verstuurd',
     historyCount: 1
   }
 ];
+
+// --- TIJDLIJN EVENTS ---
+export type EventType = 
+  | 'inkoopopdracht_verstuurd'
+  | 'inkoopopdracht_geaccepteerd'
+  | 'inkoopopdracht_geweigerd'
+  | 'aanbod_verstuurd'
+  | 'aanbod_geaccepteerd'
+  | 'aanbod_afgewezen'
+  | 'contract_ondertekend'
+  | 'bijlage_toegevoegd'
+  | 'bericht_verstuurd'
+  | 'controle_vastgelegd';
+
+export interface DossierEvent {
+  id: string;
+  dossierId: string;
+  type: EventType;
+  date: string;
+  description: string;
+  actor: string; // wie heeft de actie uitgevoerd
+  linkedSection?: string; // tab om naar te linken
+}
+
+export const mockDossierEvents: DossierEvent[] = [
+  // D-3001 (Jan de Bouwer - Aanbod Verstuurd)
+  { id: 'E-001', dossierId: 'D-3001', type: 'inkoopopdracht_verstuurd', date: '2025-03-05T09:00:00', description: 'Inkoopopdracht verstuurd naar Jan de Bouwer (Timmerwerken)', actor: 'Tim de Ruiter', linkedSection: 'inkoopopdracht' },
+  { id: 'E-002', dossierId: 'D-3001', type: 'inkoopopdracht_geaccepteerd', date: '2025-03-06T14:30:00', description: 'Inkoopopdracht geaccepteerd door opdrachtnemer', actor: 'Jan de Bouwer', linkedSection: 'inkoopopdracht' },
+  { id: 'E-003', dossierId: 'D-3001', type: 'bijlage_toegevoegd', date: '2025-03-07T10:15:00', description: 'Tekening kozijnen fase 1.pdf toegevoegd', actor: 'Tim de Ruiter', linkedSection: 'bijlagen' },
+  { id: 'E-004', dossierId: 'D-3001', type: 'aanbod_verstuurd', date: '2025-03-10T11:00:00', description: 'Aanbod verstuurd: €13.750 excl. BTW voor alle kozijnen kavel 1-10', actor: 'Jan de Bouwer', linkedSection: 'aanbod' },
+
+  // D-3002 (Peter de Schilder - Geweigerd)
+  { id: 'E-005', dossierId: 'D-3002', type: 'inkoopopdracht_verstuurd', date: '2025-03-05T09:00:00', description: 'Inkoopopdracht verstuurd naar Schildersbedrijf Van der Kleij', actor: 'Tim de Ruiter', linkedSection: 'inkoopopdracht' },
+  { id: 'E-006', dossierId: 'D-3002', type: 'inkoopopdracht_geweigerd', date: '2025-03-08T16:00:00', description: 'Inkoopopdracht geweigerd. Reden: "Te weinig capaciteit in deze periode."', actor: 'Peter van der Kleij', linkedSection: 'inkoopopdracht' },
+
+  // D-3003 (Electra Fix - Verstuurd)
+  { id: 'E-007', dossierId: 'D-3003', type: 'inkoopopdracht_verstuurd', date: '2025-01-10T08:00:00', description: 'Raamovereenkomst verstuurd naar Electra Fix BV', actor: 'Tim de Ruiter', linkedSection: 'inkoopopdracht' },
+];
+
+// --- BIJLAGEN ---
+export interface DossierAttachment {
+  id: string;
+  dossierId: string;
+  name: string;
+  type: string;
+  size: string;
+  uploadedBy: string;
+  date: string;
+}
+
+export const mockDossierAttachments: DossierAttachment[] = [
+  { id: 'A-001', dossierId: 'D-3001', name: 'Tekening kozijnen fase 1.pdf', type: 'PDF', size: '2.4 MB', uploadedBy: 'Tim de Ruiter', date: '2025-03-07' },
+  { id: 'A-002', dossierId: 'D-3001', name: 'Inkoopopdracht PO-2001.pdf', type: 'PDF', size: '340 KB', uploadedBy: 'Systeem', date: '2025-03-05' },
+];
+
+// --- BERICHTEN ---
+export interface DossierMessage {
+  id: string;
+  dossierId: string;
+  author: string;
+  role: 'opdrachtgever' | 'opdrachtnemer';
+  message: string;
+  date: string;
+}
+
+export const mockDossierMessages: DossierMessage[] = [
+  { id: 'M-001', dossierId: 'D-3001', author: 'Tim de Ruiter', role: 'opdrachtgever', message: 'Goedemiddag Jan, heb je de tekeningen ontvangen? Graag een reactie voor vrijdag.', date: '2025-03-07T11:00:00' },
+  { id: 'M-002', dossierId: 'D-3001', author: 'Jan de Bouwer', role: 'opdrachtnemer', message: 'Ja ontvangen, dank. Ik stuur mijn aanbod maandag op.', date: '2025-03-07T13:45:00' },
+  { id: 'M-003', dossierId: 'D-3001', author: 'Jan de Bouwer', role: 'opdrachtnemer', message: 'Aanbod verstuurd. Laat me weten of er vragen zijn.', date: '2025-03-10T11:05:00' },
+];
+

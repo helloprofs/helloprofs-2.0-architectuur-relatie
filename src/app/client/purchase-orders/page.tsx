@@ -1,23 +1,27 @@
+"use client";
+
+import { Suspense } from "react";
 import { mockPurchaseOrders, mockDossiers, mockProjects } from "@/lib/mock-data";
-import { Plus, Search, FileText } from "lucide-react";
+import Link from "next/link";
+import { Plus, Search, ArrowRight, Files, X, FilterX } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export default function PurchaseOrdersPage() {
-  const getProjectName = (id: string) => {
-    return mockProjects.find(p => p.id === id)?.name || "Onbekend project";
-  };
+function PurchaseOrdersContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const projectIdFilter = searchParams.get("projectId");
+  const activeProject = projectIdFilter ? mockProjects.find(p => p.id === projectIdFilter) : null;
 
-  const getDossiersForPo = (poId: string) => {
-    return mockDossiers.filter(d => d.purchaseOrderId === poId);
-  };
+  const getProjectName = (id: string) =>
+    mockProjects.find(p => p.id === id)?.name || id;
 
-  const getRelationName = (id: string) => {
-    const names: Record<string, string> = {
-      'R-001': 'Jan de Bouwer',
-      'R-002': 'Electra Fix BV',
-      'R-003': 'Van der Kleij',
-    };
-    return names[id] || id;
-  };
+  const getDossierCount = (poId: string) =>
+    mockDossiers.filter(d => d.purchaseOrderId === poId).length;
+
+  const filteredPOs = projectIdFilter 
+    ? mockPurchaseOrders.filter(po => po.projectId === projectIdFilter)
+    : mockPurchaseOrders;
 
   return (
     <div className="space-y-6">
@@ -33,6 +37,27 @@ export default function PurchaseOrdersPage() {
         </button>
       </div>
 
+      {/* Active Filter Badge */}
+      {activeProject && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
+              <FilterX size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Gefilterd op project</p>
+              <p className="text-sm font-bold text-slate-800 mt-0.5">{activeProject.name}</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => router.push('/client/purchase-orders')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-800 transition-colors"
+          >
+            <X size={14} /> Filter wissen
+          </button>
+        </div>
+      )}
+
       {/* Table Card */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         {/* Toolbar */}
@@ -47,79 +72,85 @@ export default function PurchaseOrdersPage() {
           </div>
         </div>
 
-        {/* List of Purchase Orders */}
-        <div className="divide-y divide-slate-100">
-          {mockPurchaseOrders.map(po => {
-            const relatedDossiers = getDossiersForPo(po.id);
-
-            return (
-              <div key={po.id} className="p-6 hover:bg-slate-50 transition-colors">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* PO Details */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-slate-100">
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Inkoopopdracht</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Project</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Dossiers</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Datum</th>
+                <th className="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredPOs.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <p className="text-sm text-slate-500 italic">Geen inkoopopdrachten gevonden voor dit project.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredPOs.map(po => {
+                const dossierCount = getDossierCount(po.id);
+                return (
+                  <tr key={po.id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-6 py-4">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{po.id}</span>
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">{po.type}</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-800">{po.title}</h3>
-                        <p className="text-sm text-blue-600 font-medium mt-0.5">↳ {getProjectName(po.projectId)}</p>
+                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">{po.title}</p>
+                        <p className="text-xs font-mono text-slate-400 mt-0.5">{po.id}</p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        po.status === 'Verstuurd' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-slate-600">{getProjectName(po.projectId)}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-medium">{po.type}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        po.status === 'Verstuurd' ? 'bg-blue-100 text-blue-700' :
+                        po.status === 'Afgerond' ? 'bg-emerald-100 text-emerald-700' :
+                        'bg-slate-100 text-slate-500'
                       }`}>
                         {po.status}
                       </span>
-                    </div>
-                    <p className="text-sm text-slate-500 leading-relaxed">{po.description}</p>
-                    <div className="flex flex-wrap gap-4 text-xs text-slate-500">
-                      <span>Aangemaakt: <strong className="text-slate-700">{new Date(po.dateCreated).toLocaleDateString('nl-NL')}</strong></span>
-                      {po.budget && <span>Budget: <strong className="text-slate-700">€{po.budget.toLocaleString('nl-NL')}</strong></span>}
-                    </div>
-                  </div>
-
-                  {/* Related Dossiers */}
-                  <div className="lg:w-72 bg-slate-50 rounded-lg border border-slate-200 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Onderliggende Dossiers</h4>
-                      <span className="text-xs font-bold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">{relatedDossiers.length}</span>
-                    </div>
-                    <div className="space-y-2">
-                      {relatedDossiers.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic text-center py-4">Nog geen dossiers</p>
-                      ) : relatedDossiers.map(dossier => {
-                        const statusColor = 
-                          dossier.status.includes('Verstuurd') ? 'bg-blue-100 text-blue-700' :
-                          dossier.status.includes('Geweigerd') || dossier.status.includes('Niet') ? 'bg-red-100 text-red-700' :
-                          dossier.status.includes('Lopend') || dossier.status.includes('Geaccepteerd') ? 'bg-emerald-100 text-emerald-700' :
-                          'bg-slate-100 text-slate-600';
-                        return (
-                          <div key={dossier.id} className="bg-white rounded-lg border border-slate-200 p-3 hover:border-blue-200 transition-colors cursor-pointer">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="text-sm font-bold text-slate-700">{dossier.id}</p>
-                                <p className="text-xs text-slate-500">{getRelationName(dossier.relationId)}</p>
-                              </div>
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${statusColor}`}>
-                                {dossier.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 mt-2 text-xs text-slate-400">
-                              <FileText size={11} />
-                              <span>{dossier.historyCount} stappen</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">
+                        <Files size={12} />
+                        {dossierCount}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-xs text-slate-400">{new Date(po.dateCreated).toLocaleDateString('nl-NL')}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link
+                        href={`/client/purchase-orders/${po.id}`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        Details <ArrowRight size={13} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              }))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PurchaseOrdersPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Laden...</div>}>
+      <PurchaseOrdersContent />
+    </Suspense>
   );
 }

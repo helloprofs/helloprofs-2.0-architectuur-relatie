@@ -16,10 +16,10 @@ import { cn } from "@/lib/utils";
 
 const mspNavItems = [
   { name: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
-  { name: "Relaties", href: "/client/relations", icon: Users },
   { name: "Projecten", href: "/client/projects", icon: FolderKanban },
   { name: "Inkoopopdrachten", href: "/client/purchase-orders", icon: ShoppingCart },
   { name: "Dossiers", href: "/client/dossiers", icon: Files },
+  { name: "Relaties", href: "/client/relations", icon: Users },
   { name: "Ondersteuning", href: "/client/support", icon: HelpCircle },
 ];
 
