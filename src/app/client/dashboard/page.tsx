@@ -6,7 +6,7 @@ export default function DashboardPage() {
   const stats = [
     { name: "Actieve Relaties", value: mockRelations.length, icon: Users, color: "blue", href: "/client/relations" },
     { name: "Lopende Projecten", value: mockProjects.length, icon: FolderKanban, color: "green", href: "/client/projects" },
-    { name: "Totaal Dossiers", value: mockDossiers.length, icon: Files, color: "purple", href: "/client/dossiers" },
+    { name: "Samenwerkingen", value: mockDossiers.length, icon: Files, color: "purple", href: "/client/dossiers" },
   ];
 
   return (
@@ -26,11 +26,10 @@ export default function DashboardPage() {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 group-hover:text-blue-600 transition-colors">{stat.name}</p>
                 <p className="text-4xl font-bold text-slate-800">{stat.value}</p>
               </div>
-              <div className={`p-3 rounded-xl transition-colors ${
-                stat.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' :
-                stat.color === 'green' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' :
-                'bg-purple-50 text-purple-600 group-hover:bg-purple-100'
-              }`}>
+              <div className={`p-3 rounded-xl transition-colors ${stat.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' :
+                  stat.color === 'green' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' :
+                    'bg-purple-50 text-purple-600 group-hover:bg-purple-100'
+                }`}>
                 <stat.icon size={24} />
               </div>
             </div>
@@ -70,18 +69,18 @@ export default function DashboardPage() {
         {/* Recent Dossiers - RIGHT */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800">Recente Dossiers</h3>
+            <h3 className="font-semibold text-slate-800">Recente Samenwerkingen</h3>
             <Link href="/client/dossiers" className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
               Bekijk alles <ArrowUpRight size={14} />
             </Link>
           </div>
           <div>
             {mockDossiers.map((dossier, i) => {
-              const statusColor = 
+              const statusColor =
                 dossier.status.includes('Actief') || dossier.status.includes('Lopend') ? 'bg-emerald-100 text-emerald-700' :
-                dossier.status.includes('Verstuurd') ? 'bg-blue-100 text-blue-700' :
-                dossier.status.includes('Geweigerd') ? 'bg-red-100 text-red-700' :
-                'bg-slate-100 text-slate-600';
+                  dossier.status.includes('Verstuurd') ? 'bg-blue-100 text-blue-700' :
+                    dossier.status.includes('Geweigerd') ? 'bg-red-100 text-red-700' :
+                      'bg-slate-100 text-slate-600';
               return (
                 <div key={dossier.id} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 border-b border-slate-100 last:border-0">
                   <div className="flex items-center gap-3">

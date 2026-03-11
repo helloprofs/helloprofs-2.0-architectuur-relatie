@@ -44,7 +44,7 @@ export default function DossiersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">Dossiers</h2>
+        <h2 className="text-2xl font-bold text-slate-800">Samenwerkingsdossiers</h2>
         <p className="text-slate-500 mt-1">Alle individuele samenwerkingen voortkomend uit inkoopopdrachten.</p>
       </div>
 
@@ -90,8 +90,8 @@ export default function DossiersPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {mockDossiers.map(dossier => (
-                <tr 
-                  key={dossier.id} 
+                <tr
+                  key={dossier.id}
                   onClick={() => router.push(`/client/dossiers/${dossier.id}`)}
                   className="hover:bg-slate-50 transition-colors cursor-pointer group"
                 >

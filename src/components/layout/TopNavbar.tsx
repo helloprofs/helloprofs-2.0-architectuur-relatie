@@ -8,7 +8,7 @@ const sectionNames: Record<string, string> = {
   relations: "Relaties",
   projects: "Projecten",
   "purchase-orders": "Inkoopopdrachten",
-  dossiers: "Dossiers",
+  dossiers: "Samenwerkingsdossiers",
   support: "Ondersteuning",
 };
 
@@ -21,8 +21,7 @@ export function TopNavbar() {
   return (
     <header className="flex items-center justify-between h-16 px-8 bg-white border-b border-slate-200 flex-shrink-0">
       <div>
-        <h1 className="text-xl font-bold text-slate-800">{title}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">helloprofs.nl / {title}</p>
+        <p className="text-xs font-medium text-slate-400">helloprofs.nl / {title}</p>
       </div>
 
       <div className="flex items-center gap-4">

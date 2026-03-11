@@ -9,7 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 function PurchaseOrdersContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const projectIdFilter = searchParams.get("projectId");
   const activeProject = projectIdFilter ? mockProjects.find(p => p.id === projectIdFilter) : null;
 
@@ -19,7 +19,7 @@ function PurchaseOrdersContent() {
   const getDossierCount = (poId: string) =>
     mockDossiers.filter(d => d.purchaseOrderId === poId).length;
 
-  const filteredPOs = projectIdFilter 
+  const filteredPOs = projectIdFilter
     ? mockPurchaseOrders.filter(po => po.projectId === projectIdFilter)
     : mockPurchaseOrders;
 
@@ -49,7 +49,7 @@ function PurchaseOrdersContent() {
               <p className="text-sm font-bold text-slate-800 mt-0.5">{activeProject.name}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => router.push('/client/purchase-orders')}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-800 transition-colors"
           >
@@ -99,50 +99,49 @@ function PurchaseOrdersContent() {
                 </tr>
               ) : (
                 filteredPOs.map(po => {
-                const dossierCount = getDossierCount(po.id);
-                return (
-                  <tr key={po.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">{po.title}</p>
-                        <p className="text-xs font-mono text-slate-400 mt-0.5">{po.id}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-slate-600">{getProjectName(po.projectId)}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-medium">{po.type}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        po.status === 'Verstuurd' ? 'bg-blue-100 text-blue-700' :
-                        po.status === 'Afgerond' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-slate-100 text-slate-500'
-                      }`}>
-                        {po.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">
-                        <Files size={12} />
-                        {dossierCount}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="text-xs text-slate-400">{new Date(po.dateCreated).toLocaleDateString('nl-NL')}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/client/purchase-orders/${po.id}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        Details <ArrowRight size={13} />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              }))}
+                  const dossierCount = getDossierCount(po.id);
+                  return (
+                    <tr key={po.id} className="hover:bg-slate-50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">{po.title}</p>
+                          <p className="text-xs font-mono text-slate-400 mt-0.5">{po.id}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-slate-600">{getProjectName(po.projectId)}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-medium">{po.type}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${po.status === 'Verstuurd' ? 'bg-blue-100 text-blue-700' :
+                          po.status === 'Afgerond' ? 'bg-emerald-100 text-emerald-700' :
+                            'bg-slate-100 text-slate-500'
+                          }`}>
+                          {po.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">
+                          <Files size={12} />
+                          {dossierCount}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-xs text-slate-400">{new Date(po.dateCreated).toLocaleDateString('nl-NL')}</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link
+                          href={`/client/purchase-orders/${po.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          Details <ArrowRight size={13} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                }))}
             </tbody>
           </table>
         </div>

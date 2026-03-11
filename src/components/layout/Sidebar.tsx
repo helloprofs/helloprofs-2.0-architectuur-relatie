@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  FolderKanban, 
-  ShoppingCart, 
-  Files, 
+import {
+  LayoutDashboard,
+  Users,
+  FolderKanban,
+  ShoppingCart,
+  Files,
   HelpCircle,
   LogOut,
   UserCircle
@@ -18,7 +18,7 @@ const mspNavItems = [
   { name: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
   { name: "Projecten", href: "/client/projects", icon: FolderKanban },
   { name: "Inkoopopdrachten", href: "/client/purchase-orders", icon: ShoppingCart },
-  { name: "Dossiers", href: "/client/dossiers", icon: Files },
+  { name: "Samenwerkingen", href: "/client/dossiers", icon: Files },
   { name: "Relaties", href: "/client/relations", icon: Users },
   { name: "Ondersteuning", href: "/client/support", icon: HelpCircle },
 ];
