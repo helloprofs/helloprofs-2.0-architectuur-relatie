@@ -4,9 +4,9 @@ import Link from "next/link";
 
 export default function DashboardPage() {
   const stats = [
-    { name: "Actieve Relaties", value: mockRelations.length, icon: Users, color: "blue" },
-    { name: "Lopende Projecten", value: mockProjects.length, icon: FolderKanban, color: "green" },
-    { name: "Totaal Dossiers", value: mockDossiers.length, icon: Files, color: "purple" },
+    { name: "Actieve Relaties", value: mockRelations.length, icon: Users, color: "blue", href: "/client/relations" },
+    { name: "Lopende Projecten", value: mockProjects.length, icon: FolderKanban, color: "green", href: "/client/projects" },
+    { name: "Totaal Dossiers", value: mockDossiers.length, icon: Files, color: "purple", href: "/client/dossiers" },
   ];
 
   return (
@@ -20,21 +20,21 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+          <Link key={stat.name} href={stat.href} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md hover:border-blue-200 transition-all group">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{stat.name}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 group-hover:text-blue-600 transition-colors">{stat.name}</p>
                 <p className="text-4xl font-bold text-slate-800">{stat.value}</p>
               </div>
-              <div className={`p-3 rounded-xl ${
-                stat.color === 'blue' ? 'bg-blue-50 text-blue-600' :
-                stat.color === 'green' ? 'bg-emerald-50 text-emerald-600' :
-                'bg-purple-50 text-purple-600'
+              <div className={`p-3 rounded-xl transition-colors ${
+                stat.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' :
+                stat.color === 'green' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' :
+                'bg-purple-50 text-purple-600 group-hover:bg-purple-100'
               }`}>
                 <stat.icon size={24} />
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -71,9 +71,9 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800">Recente Dossiers</h3>
-            <button className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <Link href="/client/dossiers" className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
               Bekijk alles <ArrowUpRight size={14} />
-            </button>
+            </Link>
           </div>
           <div>
             {mockDossiers.map((dossier, i) => {

@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { mockPurchaseOrders, mockDossiers, mockProjects } from "@/lib/mock-data";
 import Link from "next/link";
-import { Plus, Search, ArrowRight, Files, X, FilterX } from "lucide-react";
+import { Plus, Search, ArrowRight, Files, X, FilterX, Filter } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 function PurchaseOrdersContent() {
@@ -70,6 +70,10 @@ function PurchaseOrdersContent() {
               className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+            <Filter size={16} className="text-slate-400" />
+            Filteren
+          </button>
         </div>
 
         {/* Table */}
