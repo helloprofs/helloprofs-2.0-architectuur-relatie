@@ -29,6 +29,9 @@ export default function DossiersPage() {
   const getPurchaseOrder = (id: string) =>
     mockPurchaseOrders.find(po => po.id === id);
 
+  const getPurchaseOrderType = (id: string) =>
+    getPurchaseOrder(id)?.type || '—';
+
   const getProjectName = (purchaseOrderId: string) => {
     const po = getPurchaseOrder(purchaseOrderId);
     return po ? mockProjects.find(p => p.id === po.projectId)?.name || po.projectId : '—';
@@ -81,7 +84,7 @@ export default function DossiersPage() {
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Inkoopopdracht</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Relatie</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Dossierstatus</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Tijdlijn</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
@@ -120,11 +123,10 @@ export default function DossiersPage() {
                   <td className="px-6 py-4">
                     <DossierStatusBadge status={dossier.status} />
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-blue-100 hover:text-blue-700 transition-colors">
-                      <History size={13} />
-                      {dossier.historyCount} stappen
-                    </button>
+                  <td className="px-6 py-4">
+                    <span className="inline-flex px-2.5 py-1 rounded-md bg-slate-100 text-xs font-semibold text-slate-600 border border-slate-200">
+                      {getPurchaseOrderType(dossier.purchaseOrderId)}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800 transition-colors">
