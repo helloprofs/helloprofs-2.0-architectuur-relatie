@@ -40,29 +40,33 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col w-64 h-screen bg-slate-900 text-slate-300 border-r border-slate-800 shrink-0">
+    <div className="flex flex-col w-[280px] h-screen bg-[#0A0F1C] text-slate-300 border-r border-[#1E293B] shrink-0 font-sans shadow-2xl z-20">
       {/* Logo Area */}
-      <div className="flex items-center h-16 px-6 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center">
-            <span className="text-white font-bold text-lg leading-none">h</span>
+      <div className="flex items-center h-20 px-8 border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+            <span className="text-white font-bold text-lg leading-none select-none">h</span>
           </div>
-          <span className="text-white font-semibold tracking-wide">helloprofs.nl</span>
+          <span className="text-white font-bold tracking-wide text-lg select-none">helloprofs.nl</span>
         </div>
       </div>
 
       {/* User Profile Summary */}
-      <div className="p-6 border-b border-slate-800 flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center mb-3 ring-2 ring-slate-800">
-          <UserCircle size={32} className="text-slate-400" />
+      <div className="p-8 border-b border-white/5 flex flex-col items-center justify-center bg-white/[0.01]">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center mb-4 ring-2 ring-white/10 shadow-lg relative cursor-pointer overflow-hidden group">
+           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <UserCircle size={40} className="text-slate-300" strokeWidth={1.5} />
         </div>
-        <p className="text-white font-medium text-sm">Opdrachtgever B.V.</p>
-        <p className="text-xs text-slate-500 mt-1">Hoofdaccount</p>
+        <p className="text-white font-semibold text-[15px] tracking-wide">Opdrachtgever B.V.</p>
+        <span className="px-2.5 py-1 mt-2 text-[11px] font-bold tracking-widest uppercase text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-full">
+          Hoofdaccount
+        </span>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-        <nav className="space-y-1 px-3">
+      <div className="flex-1 overflow-y-auto py-6 custom-scrollbar px-4">
+        <p className="px-4 text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-3 select-none">Workspace</p>
+        <nav className="space-y-1">
           {mspNavItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -70,13 +74,23 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors duration-200",
+                  "flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 group relative",
                   isActive 
-                    ? "bg-blue-600/10 text-blue-400 font-medium" 
-                    : "hover:bg-slate-800/50 hover:text-white"
+                    ? "text-white bg-blue-600/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] border border-blue-500/20" 
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
                 )}
               >
-                <item.icon size={18} className={cn(isActive && "text-blue-500")} />
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.7)]"></div>
+                )}
+                <item.icon 
+                   size={18} 
+                   strokeWidth={isActive ? 2.5 : 2} 
+                   className={cn(
+                     "transition-colors duration-200", 
+                     isActive ? "text-blue-500" : "text-slate-500 group-hover:text-slate-300"
+                   )} 
+                 />
                 {item.name}
               </Link>
             );
