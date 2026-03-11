@@ -238,3 +238,53 @@ export const mockDossierMessages: DossierMessage[] = [
   { id: 'M-003', dossierId: 'D-3001', author: 'Jan de Bouwer', role: 'opdrachtnemer', message: 'Aanbod verstuurd. Laat me weten of er vragen zijn.', date: '2025-03-10T11:05:00' },
 ];
 
+// --- DEELOPDRACHTEN (Sub-assignments for Frameworks) ---
+export interface Deelopdracht {
+  id: string;
+  dossierId: string;
+  title: string;
+  description: string;
+  startDate: string;
+  expectedResult: string;
+  responsibility: string; // e.g. "Aannemer", "Gezamenlijk"
+  status: 'In_Voorbereiding' | 'In_Uitvoering' | 'Herstel_Nodig' | 'Opgeleverd';
+  historyCount: number;
+}
+
+export const mockDeelopdrachten: Deelopdracht[] = [
+  // Link to D-3003 (Electra Fix - Raamovereenkomst)
+  {
+    id: 'DO-4001',
+    dossierId: 'D-3003',
+    title: 'Storingsmelding Lift hal 2',
+    description: 'Lift in hal 2 geeft storingscode E-40. Diagnose en reparatie vereist conform SLA.',
+    startDate: '2025-03-10',
+    expectedResult: 'Lift is storingsvrij en operationeel met meetrapport',
+    responsibility: 'Opdrachtnemer (Volledig)',
+    status: 'In_Uitvoering',
+    historyCount: 2
+  },
+  {
+    id: 'DO-4002',
+    dossierId: 'D-3003',
+    title: 'Vervanging Noodverlichting Galerij',
+    description: '10 armaturen noodverlichting vallen buiten de keuring en moeten preventief vervangen worden.',
+    startDate: '2025-02-15',
+    expectedResult: 'Werkende noodverlichting incl. nieuw certificaat',
+    responsibility: 'Opdrachtnemer (Volledig)',
+    status: 'Opgeleverd',
+    historyCount: 4
+  },
+  {
+    id: 'DO-4003',
+    dossierId: 'D-3003',
+    title: 'Reparatie intercom systeem',
+    description: 'Intercom unit appartement 4b functioneert niet. Microfoon defect geconstateerd door bewoner.',
+    startDate: '2025-03-05',
+    expectedResult: 'Intercom unit getest en werkt aan beide kanten',
+    responsibility: 'Opdrachtnemer (Volledig)',
+    status: 'Herstel_Nodig',
+    historyCount: 3
+  }
+];
+

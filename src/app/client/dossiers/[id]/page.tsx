@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   mockDossiers, mockPurchaseOrders, mockRelations, mockProjects,
-  mockDossierEvents, mockDossierAttachments, mockDossierMessages,
+  mockDossierEvents, mockDossierAttachments, mockDossierMessages, mockDeelopdrachten,
   DossierStatus, EventType
 } from "@/lib/mock-data";
 import {
@@ -18,12 +18,12 @@ import {
 function StatusBadge({ status }: { status: DossierStatus }) {
   const map: Record<DossierStatus, { label: string; cls: string }> = {
     'Inkoopopdracht_Verstuurd': { label: 'Inkoopopdracht Verstuurd', cls: 'bg-blue-100 text-blue-700' },
-    'Niet_Gereageerd':          { label: 'Niet Gereageerd',          cls: 'bg-orange-100 text-orange-700' },
-    'Inkoopopdracht_Geweigerd': { label: 'Geweigerd',                cls: 'bg-red-100 text-red-700' },
-    'Aanbod_Verstuurd':         { label: 'Aanbod Verstuurd',         cls: 'bg-purple-100 text-purple-700' },
-    'Aanbod_Geaccepteerd':      { label: 'Aanbod Geaccepteerd',      cls: 'bg-teal-100 text-teal-700' },
-    'Contract_Lopend':          { label: 'Contract Lopend',          cls: 'bg-emerald-100 text-emerald-700' },
-    'Contract_Verlopen':        { label: 'Contract Verlopen',        cls: 'bg-slate-100 text-slate-500' },
+    'Niet_Gereageerd': { label: 'Niet Gereageerd', cls: 'bg-orange-100 text-orange-700' },
+    'Inkoopopdracht_Geweigerd': { label: 'Geweigerd', cls: 'bg-red-100 text-red-700' },
+    'Aanbod_Verstuurd': { label: 'Aanbod Verstuurd', cls: 'bg-purple-100 text-purple-700' },
+    'Aanbod_Geaccepteerd': { label: 'Aanbod Geaccepteerd', cls: 'bg-teal-100 text-teal-700' },
+    'Contract_Lopend': { label: 'Contract Lopend', cls: 'bg-emerald-100 text-emerald-700' },
+    'Contract_Verlopen': { label: 'Contract Verlopen', cls: 'bg-slate-100 text-slate-500' },
   };
   const { label, cls } = map[status];
   return <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${cls}`}>{label}</span>;
@@ -32,36 +32,32 @@ function StatusBadge({ status }: { status: DossierStatus }) {
 // ─── Timeline event icon ──────────────────────────────────────
 function EventIcon({ type }: { type: EventType }) {
   const map: Record<EventType, { icon: React.ReactNode; cls: string }> = {
-    'inkoopopdracht_verstuurd':   { icon: <Send size={14} />,          cls: 'bg-blue-100 text-blue-600' },
-    'inkoopopdracht_geaccepteerd':{ icon: <CheckCircle size={14} />,   cls: 'bg-emerald-100 text-emerald-600' },
-    'inkoopopdracht_geweigerd':   { icon: <XCircle size={14} />,       cls: 'bg-red-100 text-red-600' },
-    'aanbod_verstuurd':           { icon: <FileText size={14} />,      cls: 'bg-purple-100 text-purple-600' },
-    'aanbod_geaccepteerd':        { icon: <CheckCircle size={14} />,   cls: 'bg-emerald-100 text-emerald-600' },
-    'aanbod_afgewezen':           { icon: <XCircle size={14} />,       cls: 'bg-red-100 text-red-600' },
-    'contract_ondertekend':       { icon: <FileCheck size={14} />,     cls: 'bg-indigo-100 text-indigo-600' },
-    'bijlage_toegevoegd':         { icon: <Paperclip size={14} />,     cls: 'bg-slate-100 text-slate-600' },
-    'bericht_verstuurd':          { icon: <MessageSquare size={14} />, cls: 'bg-slate-100 text-slate-600' },
-    'controle_vastgelegd':        { icon: <AlertTriangle size={14} />, cls: 'bg-amber-100 text-amber-600' },
+    'inkoopopdracht_verstuurd': { icon: <Send size={14} />, cls: 'bg-blue-100 text-blue-600' },
+    'inkoopopdracht_geaccepteerd': { icon: <CheckCircle size={14} />, cls: 'bg-emerald-100 text-emerald-600' },
+    'inkoopopdracht_geweigerd': { icon: <XCircle size={14} />, cls: 'bg-red-100 text-red-600' },
+    'aanbod_verstuurd': { icon: <FileText size={14} />, cls: 'bg-purple-100 text-purple-600' },
+    'aanbod_geaccepteerd': { icon: <CheckCircle size={14} />, cls: 'bg-emerald-100 text-emerald-600' },
+    'aanbod_afgewezen': { icon: <XCircle size={14} />, cls: 'bg-red-100 text-red-600' },
+    'contract_ondertekend': { icon: <FileCheck size={14} />, cls: 'bg-indigo-100 text-indigo-600' },
+    'bijlage_toegevoegd': { icon: <Paperclip size={14} />, cls: 'bg-slate-100 text-slate-600' },
+    'bericht_verstuurd': { icon: <MessageSquare size={14} />, cls: 'bg-slate-100 text-slate-600' },
+    'controle_vastgelegd': { icon: <AlertTriangle size={14} />, cls: 'bg-amber-100 text-amber-600' },
   };
   const { icon, cls } = map[type];
   return <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${cls}`}>{icon}</div>;
 }
 
-const TABS = [
-  { id: 'tijdlijn',         label: 'Tijdlijn',         icon: Clock },
-  { id: 'inkoopopdracht',   label: 'Inkoopopdracht',   icon: FileText },
-  { id: 'aanbod',           label: 'Aanbod',           icon: FileCheck },
-  { id: 'contract',         label: 'Contract',         icon: FileCheck },
-  { id: 'bijlagen',         label: 'Bijlagen',         icon: Paperclip },
-  { id: 'communicatie',     label: 'Communicatie',     icon: MessageSquare },
-];
-
 export default function DossierDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('tijdlijn');
 
   const dossier = mockDossiers.find(d => d.id === id);
+  const po = mockPurchaseOrders.find(p => p.id === dossier?.purchaseOrderId);
+  const isRaamopdracht = po?.type === 'Raamopdracht';
+
+  const [activeTab, setActiveTab] = useState(isRaamopdracht ? 'deelopdrachten' : 'tijdlijn');
+  const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
+
   if (!dossier) return (
     <div className="text-center py-20">
       <p className="text-slate-500">Dossier niet gevonden.</p>
@@ -69,12 +65,22 @@ export default function DossierDetailPage() {
     </div>
   );
 
-  const po       = mockPurchaseOrders.find(p => p.id === dossier.purchaseOrderId);
   const relation = mockRelations.find(r => r.id === dossier.relationId);
-  const project  = po ? mockProjects.find(p => p.id === po.projectId) : null;
-  const events   = mockDossierEvents.filter(e => e.dossierId === id).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const project = po ? mockProjects.find(p => p.id === po.projectId) : null;
+  const events = mockDossierEvents.filter(e => e.dossierId === id).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const attachments = mockDossierAttachments.filter(a => a.dossierId === id);
-  const messages    = mockDossierMessages.filter(m => m.dossierId === id);
+  const messages = mockDossierMessages.filter(m => m.dossierId === id);
+  const deelopdrachten = mockDeelopdrachten.filter(d => d.dossierId === id);
+
+  const visibleTabs = [
+    ...(isRaamopdracht ? [{ id: 'deelopdrachten', label: 'Werkorders', icon: Hammer }] : []),
+    { id: 'inkoopopdracht', label: 'Inkoopopdracht', icon: FileText },
+    { id: 'aanbod', label: 'Aanbod', icon: FileCheck },
+    { id: 'contract', label: 'Contract', icon: FileCheck },
+    { id: 'bijlagen', label: 'Bijlagen', icon: Paperclip },
+    { id: 'communicatie', label: 'Communicatie', icon: MessageSquare },
+    { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
+  ];
 
   return (
     <div className="space-y-6">
@@ -109,26 +115,111 @@ export default function DossierDetailPage() {
       {/* Tabs */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="flex overflow-x-auto border-b border-slate-100">
-          {TABS.map(tab => (
+          {visibleTabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
                   ? 'text-blue-700 border-blue-600 bg-blue-50/50'
                   : 'text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <tab.icon size={15} />
               {tab.label}
-              {tab.id === 'bijlagen'     && attachments.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{attachments.length}</span>}
-              {tab.id === 'communicatie' && messages.length > 0    && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{messages.length}</span>}
+              {tab.id === 'deelopdrachten' && deelopdrachten.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{deelopdrachten.length}</span>}
+              {tab.id === 'bijlagen' && attachments.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{attachments.length}</span>}
+              {tab.id === 'communicatie' && messages.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{messages.length}</span>}
             </button>
           ))}
         </div>
 
         {/* Tab Content */}
         <div className="p-6">
+
+          {/* ── DEELOPDRACHTEN / WERKORDERS (ONLY RAAMDORSSIERS) ── */}
+          {activeTab === 'deelopdrachten' && isRaamopdracht && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-end mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Deelopdrachten & Werkorders</h3>
+                  <p className="text-sm text-slate-500 mt-1">Geregistreerde werkzaamheden die binnen de kaders van dit raamcontract vallen.</p>
+                </div>
+                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                  <Plus size={15} /> Handmatig Toevoegen
+                </button>
+              </div>
+
+              {deelopdrachten.length > 0 && (
+                <div className="flex items-center gap-2 mb-2 pb-4 border-b border-slate-100 overflow-x-auto">
+                  {['In_Uitvoering', 'Herstel_Nodig', 'Opgeleverd', 'Alle'].map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setFilterStatus(f)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                        filterStatus === f 
+                          ? 'bg-slate-800 text-white' 
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {f === 'Alle' ? `Alle (${deelopdrachten.length})` : 
+                       `${f.replace('_', ' ')} (${deelopdrachten.filter(d => d.status === f).length})`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {deelopdrachten.length === 0 ? (
+                <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                  <Hammer size={32} className="text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-slate-600">Nog geen werkorders geregistreerd</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Nieuwe opdrachten vanuit het systeem van de opdrachtgever verschijnen automatisch hier.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {deelopdrachten
+                    .filter(werk => filterStatus === 'Alle' || werk.status === filterStatus)
+                    .map(werk => (
+                    <div key={werk.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col group cursor-pointer">
+                      <div className="p-5 border-b border-slate-100">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-xs font-mono font-bold text-slate-400">{werk.id}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${werk.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
+                              werk.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
+                                werk.status === 'Opgeleverd' ? 'bg-emerald-100 text-emerald-700' :
+                                  'bg-slate-100 text-slate-600'
+                            }`}>
+                            {werk.status.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">{werk.title}</h4>
+                        <p className="text-sm text-slate-500 mt-2 line-clamp-2">{werk.description}</p>
+                      </div>
+
+                      <div className="p-5 bg-slate-50 flex-1 space-y-3">
+                        <div>
+                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verantwoordelijkheid</p>
+                          <p className="text-xs font-medium text-slate-700">{werk.responsibility}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verwacht Resultaat (SLA)</p>
+                          <p className="text-xs font-medium text-slate-700">{werk.expectedResult}</p>
+                        </div>
+                      </div>
+
+                      <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                          <Clock size={13} /> {new Date(werk.startDate).toLocaleDateString('nl-NL')}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+                          <MessageSquare size={13} /> Details & Chat
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── TIJDLIJN ── */}
           {activeTab === 'tijdlijn' && (
