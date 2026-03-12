@@ -62,6 +62,44 @@ export default function DossierDetailPage() {
 
   // State for Deelopdracht Drawer
   const [selectedDeelopdracht, setSelectedDeelopdracht] = useState<typeof mockDeelopdrachten[0] | null>(null);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [newWorkorder, setNewWorkorder] = useState({
+    title: '',
+    description: '',
+    startDate: new Date().toISOString().split('T')[0],
+    responsibility: 'Opdrachtnemer (Volledig)',
+    expectedResult: '',
+    location: ''
+  });
+
+  const [localDeelopdrachten, setLocalDeelopdrachten] = useState(mockDeelopdrachten.filter(d => d.dossierId === id));
+
+  const handleCreateWorkorder = () => {
+    const newItem = {
+      id: `DO-${4000 + localDeelopdrachten.length + 1}`,
+      dossierId: id!,
+      ...newWorkorder,
+      status: 'In_Uitvoering' as const,
+      historyCount: 0
+    };
+    setLocalDeelopdrachten([newItem, ...localDeelopdrachten]);
+    setIsCreateDrawerOpen(false);
+    setNewWorkorder({
+      title: '',
+      description: '',
+      startDate: new Date().toISOString().split('T')[0],
+      responsibility: 'Opdrachtnemer (Volledig)',
+      expectedResult: '',
+      location: ''
+    });
+  };
+
+  const handleCancelWorkorder = (id: string) => {
+    if (confirm('Weet u zeker dat u deze werkorder wilt annuleren? Deze actie kan niet ongedaan worden gemaakt in het dossier.')) {
+      setLocalDeelopdrachten(prev => prev.map(d => d.id === id ? { ...d, status: 'Geannuleerd' } : d));
+      setSelectedDeelopdracht(null);
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -104,7 +142,7 @@ export default function DossierDetailPage() {
   const deelopdrachten = mockDeelopdrachten.filter(d => d.dossierId === id);
 
   const visibleTabs = [
-    ...(isRaamopdracht ? [{ id: 'deelopdrachten', label: 'Werkorders', icon: Hammer }] : []),
+    ...(isRaamopdracht ? [{ id: 'deelopdrachten', label: 'Deelopdrachten', icon: Hammer }] : []),
     { id: 'inkoopopdracht', label: 'Inkoopopdracht', icon: FileText },
     { id: 'aanbod', label: 'Aanbod', icon: FileCheck },
     { id: 'contract', label: 'Contract', icon: FileCheck },
@@ -136,7 +174,7 @@ export default function DossierDetailPage() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <StatusBadge status={dossier.status} />
-            <button className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors">
+            <button className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors cursor-pointer">
               <Download size={13} /> Exporteren
             </button>
           </div>
@@ -150,7 +188,7 @@ export default function DossierDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
+              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 cursor-pointer ${activeTab === tab.id
                 ? 'text-blue-700 border-blue-600 bg-blue-50/50'
                 : 'text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50'
                 }`}
@@ -172,45 +210,48 @@ export default function DossierDetailPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-end mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-800">Deelopdrachten & Werkorders</h3>
+                  <h3 className="text-lg font-bold text-slate-800">Deelopdrachten</h3>
                   <p className="text-sm text-slate-500 mt-1">Geregistreerde werkzaamheden die binnen de kaders van dit raamcontract vallen.</p>
                 </div>
-                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-                  <Plus size={15} /> Handmatig Toevoegen
+                <button 
+                  onClick={() => setIsCreateDrawerOpen(true)}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+                >
+                  <Plus size={15} /> Deelopdracht toevoegen
                 </button>
               </div>
 
-              {deelopdrachten.length > 0 && (
+              {localDeelopdrachten.length > 0 && (
                 <div className="flex items-center gap-2 mb-2 pb-4 border-b border-slate-100 overflow-x-auto">
-                  {['In_Uitvoering', 'Herstel_Nodig', 'Opgeleverd', 'Alle'].map(f => (
+                  {['In_Uitvoering', 'Herstel_Nodig', 'Opgeleverd', 'Geannuleerd', 'Alle'].map(f => (
                     <button
                       key={f}
                       onClick={() => setFilterStatus(f)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${filterStatus === f
-                          ? 'bg-slate-800 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${filterStatus === f
+                        ? 'bg-slate-800 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
-                      {f === 'Alle' ? `Alle (${deelopdrachten.length})` :
-                        `${f.replace('_', ' ')} (${deelopdrachten.filter(d => d.status === f).length})`}
+                      {f === 'Alle' ? `Alle (${localDeelopdrachten.length})` :
+                        `${f.replace('_', ' ')} (${localDeelopdrachten.filter(d => d.status === f).length})`}
                     </button>
                   ))}
                 </div>
               )}
 
-              {deelopdrachten.length === 0 ? (
+              {localDeelopdrachten.length === 0 ? (
                 <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
                   <Hammer size={32} className="text-slate-300 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-slate-600">Nog geen werkorders geregistreerd</p>
+                  <p className="text-sm font-medium text-slate-600">Nog geen deelopdrachten geregistreerd</p>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Nieuwe opdrachten vanuit het systeem van de opdrachtgever verschijnen automatisch hier.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {deelopdrachten
+                  {localDeelopdrachten
                     .filter(werk => filterStatus === 'Alle' || werk.status === filterStatus)
                     .map(werk => (
-                      <div 
-                        key={werk.id} 
+                      <div
+                        key={werk.id}
                         onClick={() => setSelectedDeelopdracht(werk)}
                         className="bg-white rounded-2xl border border-black/5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-blue-500/20 transition-all flex flex-col group cursor-pointer"
                       >
@@ -220,13 +261,14 @@ export default function DossierDetailPage() {
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${werk.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
                               werk.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
                                 werk.status === 'Opgeleverd' ? 'bg-emerald-100 text-emerald-700' :
-                                  'bg-slate-100 text-slate-600'
+                                  werk.status === 'Geannuleerd' ? 'bg-slate-100 text-slate-500 line-through' :
+                                    'bg-slate-100 text-slate-600'
                               }`}>
                               {werk.status.replace('_', ' ')}
                             </span>
                           </div>
-                          <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors uppercase tracking-tight text-sm">{werk.title}</h4>
-                          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{werk.description}</p>
+                          <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors uppercase tracking-tight text-sm ${werk.status === 'Geannuleerd' ? 'text-slate-400' : ''}`}>{werk.title}</h4>
+                          <p className={`text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed ${werk.status === 'Geannuleerd' ? 'text-slate-300' : ''}`}>{werk.description}</p>
                         </div>
 
                         <div className="p-5 bg-slate-50/50 flex-1 space-y-3">
@@ -245,7 +287,7 @@ export default function DossierDetailPage() {
                             <Clock size={12} /> {new Date(werk.startDate).toLocaleDateString('nl-NL')}
                           </span>
                           <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600">
-                             Details <ArrowRight size={13} />
+                            Details <ArrowRight size={13} />
                           </div>
                         </div>
                       </div>
@@ -274,7 +316,7 @@ export default function DossierDetailPage() {
                             {event.linkedSection && (
                               <button
                                 onClick={() => setActiveTab(event.linkedSection!)}
-                                className="text-xs text-blue-600 hover:underline flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-xs text-blue-600 hover:underline flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                               >
                                 Bekijk →
                               </button>
@@ -353,10 +395,10 @@ export default function DossierDetailPage() {
                     <p className="text-sm text-slate-700 leading-relaxed">Prijs inclusief materiaalkosten voor kozijnprofiel en afwerking. Exclusief verfwerk.</p>
                   </div>
                   <div className="flex gap-3">
-                    <button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">
+                    <button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors cursor-pointer">
                       Aanbod Accepteren
                     </button>
-                    <button className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg py-2.5 text-sm font-semibold transition-colors">
+                    <button className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg py-2.5 text-sm font-semibold transition-colors cursor-pointer">
                       Aanbod Afwijzen
                     </button>
                   </div>
@@ -379,7 +421,7 @@ export default function DossierDetailPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{attachments.length} bijlagen</p>
-                <button className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50 transition-colors">
+                <button className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50 transition-colors cursor-pointer">
                   <Plus size={14} /> Bijlage toevoegen
                 </button>
               </div>
@@ -399,7 +441,7 @@ export default function DossierDetailPage() {
                         <p className="text-sm font-semibold text-slate-800 truncate">{att.name}</p>
                         <p className="text-xs text-slate-400">{att.size} · Geüpload door {att.uploadedBy} op {new Date(att.date).toLocaleDateString('nl-NL')}</p>
                       </div>
-                      <button className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                      <button className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
                         <Download size={15} />
                       </button>
                     </div>
@@ -434,11 +476,10 @@ export default function DossierDetailPage() {
                             {new Date(msg.date).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                          msg.role === 'opdrachtgever' 
-                            ? 'bg-blue-600 text-white rounded-tr-none' 
+                        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${msg.role === 'opdrachtgever'
+                            ? 'bg-blue-600 text-white rounded-tr-none'
                             : 'bg-slate-100 text-slate-800 rounded-tl-none border border-black/5'
-                        }`}>
+                          }`}>
                           <p>{msg.message}</p>
                         </div>
                       </div>
@@ -449,7 +490,7 @@ export default function DossierDetailPage() {
               </div>
 
               <div className="pt-4 border-t border-black/[0.03]">
-                <form 
+                <form
                   onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                   className="flex gap-2"
                 >
@@ -460,10 +501,10 @@ export default function DossierDetailPage() {
                     placeholder="Typ uw bericht..."
                     className="flex-1 px-4 py-3 bg-black/[0.03] border-transparent rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all"
                   />
-                  <button 
+                  <button
                     type="submit"
                     disabled={!chatMessage.trim()}
-                    className="w-11 h-11 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all shrink-0"
+                    className="w-11 h-11 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
                   >
                     <Send size={18} />
                   </button>
@@ -475,15 +516,122 @@ export default function DossierDetailPage() {
         </div>
       </div>
 
-      {/* ── SIDE DRAWER (DEELOPDRACHT DETAILS & CHAT) ── */}
+      {/* ── SIDE DRAWER (CREATE WORKORDER) ── */}
+      {isCreateDrawerOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] transition-opacity"
+            onClick={() => setIsCreateDrawerOpen(false)}
+          />
+          <div className="fixed top-0 right-0 h-screen w-full max-w-lg bg-white shadow-2xl z-[101] flex flex-col border-l border-black/5 animate-in slide-in-from-right duration-300">
+            <div className="p-6 border-b border-black/[0.03] flex items-center justify-between bg-slate-50/50">
+              <div>
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Nieuwe Deelopdracht</span>
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Deelopdracht toevoegen</h3>
+              </div>
+              <button onClick={() => setIsCreateDrawerOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-slate-400 cursor-pointer">
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Titel van de deelopdracht</label>
+                <input 
+                  type="text"
+                  placeholder="Bijv. Kozijnplaatsing Sector A"
+                  className="w-full px-4 py-3 bg-slate-50 border border-black/5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all font-medium"
+                  value={newWorkorder.title}
+                  onChange={e => setNewWorkorder({...newWorkorder, title: e.target.value})}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Startdatum</label>
+                  <input 
+                    type="date"
+                    className="w-full px-4 py-3 bg-slate-50 border border-black/5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all font-medium"
+                    value={newWorkorder.startDate}
+                    onChange={e => setNewWorkorder({...newWorkorder, startDate: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Verantwoordelijke</label>
+                  <select 
+                    className="w-full px-4 py-3 bg-slate-50 border border-black/5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all font-medium appearance-none"
+                    value={newWorkorder.responsibility}
+                    onChange={e => setNewWorkorder({...newWorkorder, responsibility: e.target.value})}
+                  >
+                    <option>Opdrachtnemer (Volledig)</option>
+                    <option>Opdrachtgever (Ondersteunend)</option>
+                    <option>Gezamenlijk</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Omschrijving werkzaamheden</label>
+                <textarea 
+                  rows={4}
+                  placeholder="Beschrijf hier de specifieke taken..."
+                  className="w-full px-4 py-3 bg-slate-50 border border-black/5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all font-medium resize-none"
+                  value={newWorkorder.description}
+                  onChange={e => setNewWorkorder({...newWorkorder, description: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Locatie (Adres)</label>
+                <input 
+                  type="text"
+                  placeholder="Bijv. Stationsplein 1, Utrecht"
+                  className="w-full px-4 py-3 bg-slate-50 border border-black/5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all font-medium"
+                  value={newWorkorder.location}
+                  onChange={e => setNewWorkorder({...newWorkorder, location: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Verwacht Resultaat (SLA)</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Wat moet er bij oplevering geconstateerd worden?"
+                  className="w-full px-4 py-3 bg-blue-50/30 border border-blue-500/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all font-medium resize-none text-blue-900"
+                  value={newWorkorder.expectedResult}
+                  onChange={e => setNewWorkorder({...newWorkorder, expectedResult: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-black/[0.03] flex justify-between gap-3 font-semibold">
+              <button 
+                onClick={() => setIsCreateDrawerOpen(false)}
+                className="px-6 py-3 bg-white border border-black/10 hover:bg-slate-100 text-slate-600 rounded-xl text-sm transition-all cursor-pointer"
+              >
+                Annuleren
+              </button>
+              <button 
+                onClick={handleCreateWorkorder}
+                disabled={!newWorkorder.title || !newWorkorder.description}
+                className="px-10 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+              >
+                Opslaan
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── SIDE DRAWER (DEELOPDRACHT DETAILS) ── */}
       {selectedDeelopdracht && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] transition-opacity duration-300"
             onClick={() => setSelectedDeelopdracht(null)}
           />
-          
+
           {/* Drawer */}
           <div className="fixed top-0 right-0 h-screen w-full max-w-lg bg-white shadow-2xl z-[101] flex flex-col transform transition-transform duration-300 ease-out border-l border-black/5">
             {/* Drawer Header */}
@@ -492,9 +640,9 @@ export default function DossierDetailPage() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{selectedDeelopdracht.id}</span>
                 <h3 className="text-lg font-bold text-slate-800 leading-tight uppercase tracking-tight">{selectedDeelopdracht.title}</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedDeelopdracht(null)}
-                className="p-2 hover:bg-black/5 rounded-full transition-colors text-slate-400"
+                className="p-2 hover:bg-black/5 rounded-full transition-colors text-slate-400 cursor-pointer"
               >
                 <XCircle size={24} />
               </button>
@@ -506,15 +654,15 @@ export default function DossierDetailPage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Specificaties & SLA</h4>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    selectedDeelopdracht.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
-                    selectedDeelopdracht.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
-                    'bg-emerald-100 text-emerald-700'
-                  }`}>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${selectedDeelopdracht.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
+                      selectedDeelopdracht.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
+                        selectedDeelopdracht.status === 'Opgeleverd' ? 'bg-emerald-100 text-emerald-700' :
+                          'bg-slate-100 text-slate-500'
+                    }`}>
                     {selectedDeelopdracht.status.replace('_', ' ')}
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-2xl bg-slate-50 border border-black/5">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-1">Startdatum</p>
@@ -536,27 +684,77 @@ export default function DossierDetailPage() {
                   <p className="text-sm font-medium text-blue-900 leading-relaxed">{selectedDeelopdracht.expectedResult}</p>
                 </div>
 
+                {/* Location & Maps Section */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Locatie & Werkplek</h4>
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-black/5 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-1">Adres</p>
+                         <p className="text-sm font-semibold text-slate-800">{selectedDeelopdracht.location || 'Geen specifiek adres opgegeven'}</p>
+                      </div>
+                      {selectedDeelopdracht.location && (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedDeelopdracht.location)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-white border border-black/10 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                          Open in Maps <ArrowRight size={10} />
+                        </a>
+                      )}
+                    </div>
+                    
+                    {/* Real Google Maps Embed */}
+                    <div className="relative aspect-video rounded-xl overflow-hidden border border-black/5 bg-slate-100 group">
+                      {selectedDeelopdracht.location ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          allowFullScreen
+                          referrerPolicy="no-referrer-when-downgrade"
+                          src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedDeelopdracht.location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                        ></iframe>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                          <AlertTriangle size={24} className="mb-2" />
+                          <p className="text-[10px] uppercase font-bold tracking-wider">Geen locatie beschikbaar</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Info Alert instead of chat */}
                 <div className="p-5 rounded-2xl bg-amber-50 border border-amber-500/10 flex gap-4">
-                   <AlertTriangle className="text-amber-500 shrink-0" size={20} />
-                   <div>
-                     <p className="text-xs font-bold text-amber-900 uppercase tracking-tight mb-1">Let op</p>
-                     <p className="text-xs text-amber-800/80 leading-relaxed">
-                       Vragen of opmerkingen over deze specifieke werkorder worden centraal afgehandeld via de hoofdpagina van het dossier.
-                     </p>
-                   </div>
+                  <AlertTriangle className="text-amber-500 shrink-0" size={20} />
+                  <div>
+                    <p className="text-xs font-bold text-amber-900 uppercase tracking-tight mb-1">Let op</p>
+                    <p className="text-xs text-amber-800/80 leading-relaxed">
+                      Vragen of opmerkingen over deze specifieke werkorder worden centraal afgehandeld via de hoofdpagina van het dossier.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-6 bg-slate-50/50 border-t border-black/[0.03] flex justify-end">
-              <button 
-                onClick={() => setSelectedDeelopdracht(null)}
-                className="px-6 py-2.5 bg-white border border-black/10 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition-all shadow-sm"
-              >
-                Sluiten
-              </button>
+            <div className="p-6 bg-slate-50/50 border-t border-black/[0.03] flex justify-end gap-3 font-semibold">
+              {selectedDeelopdracht.status !== 'Geannuleerd' && selectedDeelopdracht.status !== 'Opgeleverd' && (
+                <button
+                  onClick={() => handleCancelWorkorder(selectedDeelopdracht.id)}
+                  className="px-6 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                >
+                  <XCircle size={14} /> Deelopdracht Annuleren
+                </button>
+              )}
+              {selectedDeelopdracht.status === 'Geannuleerd' && (
+                 <div className="flex-1 flex items-center gap-2 text-red-600 text-xs font-bold uppercase tracking-tight italic">
+                    <AlertTriangle size={14} /> Deze deelopdracht is geannuleerd
+                 </div>
+              )}
             </div>
           </div>
         </>

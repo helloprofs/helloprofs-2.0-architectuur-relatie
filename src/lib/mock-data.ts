@@ -1,12 +1,12 @@
 // c:\Projects\helloprofs-2.0-architectuur\src\lib\mock-data.ts
 
 // --- 1. RELATIELAAG ---
-export type RelationStatus = 
-  | 'Uitgenodigd' 
-  | 'Aangemeld' 
-  | 'Goedgekeurd' 
-  | 'Samenwerking_Actief' 
-  | 'Samenwerking_Beeindigd' 
+export type RelationStatus =
+  | 'Uitgenodigd'
+  | 'Aangemeld'
+  | 'Goedgekeurd'
+  | 'Samenwerking_Actief'
+  | 'Samenwerking_Beeindigd'
   | 'Gearchiveerd';
 
 export interface Relation {
@@ -127,7 +127,7 @@ export const mockPurchaseOrders: PurchaseOrder[] = [
 ];
 
 // --- 4. DOSSIERLAAG ---
-export type DossierStatus = 
+export type DossierStatus =
   | 'Inkoopopdracht_Verstuurd'
   | 'Niet_Gereageerd'
   | 'Inkoopopdracht_Geweigerd'
@@ -169,7 +169,7 @@ export const mockDossiers: Dossier[] = [
 ];
 
 // --- TIJDLIJN EVENTS ---
-export type EventType = 
+export type EventType =
   | 'inkoopopdracht_verstuurd'
   | 'inkoopopdracht_geaccepteerd'
   | 'inkoopopdracht_geweigerd'
@@ -247,7 +247,8 @@ export interface Deelopdracht {
   startDate: string;
   expectedResult: string;
   responsibility: string; // e.g. "Aannemer", "Gezamenlijk"
-  status: 'In_Voorbereiding' | 'In_Uitvoering' | 'Herstel_Nodig' | 'Opgeleverd';
+  status: 'In_Voorbereiding' | 'In_Uitvoering' | 'Herstel_Nodig' | 'Opgeleverd' | 'Geannuleerd';
+  location?: string;
   historyCount: number;
 }
 
