@@ -9,7 +9,7 @@ import {
   DossierStatus, EventType
 } from "@/lib/mock-data";
 import {
-  ArrowLeft, Clock, FileText, FileCheck, Hammer, Receipt,
+  ArrowLeft, ArrowRight, Clock, FileText, FileCheck, Hammer, Receipt,
   Paperclip, MessageSquare, Download, Plus, CheckCircle,
   XCircle, Send, AlertTriangle, File, User
 } from "lucide-react";
@@ -59,6 +59,9 @@ export default function DossierDetailPage() {
   const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
   const [chatMessage, setChatMessage] = useState('');
   const [messagesList, setMessagesList] = useState(mockDossierMessages.filter(m => m.dossierId === id));
+
+  // State for Deelopdracht Drawer
+  const [selectedDeelopdracht, setSelectedDeelopdracht] = useState<typeof mockDeelopdrachten[0] | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -206,10 +209,14 @@ export default function DossierDetailPage() {
                   {deelopdrachten
                     .filter(werk => filterStatus === 'Alle' || werk.status === filterStatus)
                     .map(werk => (
-                      <div key={werk.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col group cursor-pointer">
-                        <div className="p-5 border-b border-slate-100">
+                      <div 
+                        key={werk.id} 
+                        onClick={() => setSelectedDeelopdracht(werk)}
+                        className="bg-white rounded-2xl border border-black/5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-blue-500/20 transition-all flex flex-col group cursor-pointer"
+                      >
+                        <div className="p-5 border-b border-black/[0.03]">
                           <div className="flex justify-between items-start mb-2">
-                            <span className="text-xs font-mono font-bold text-slate-400">{werk.id}</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{werk.id}</span>
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${werk.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
                               werk.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
                                 werk.status === 'Opgeleverd' ? 'bg-emerald-100 text-emerald-700' :
@@ -218,27 +225,27 @@ export default function DossierDetailPage() {
                               {werk.status.replace('_', ' ')}
                             </span>
                           </div>
-                          <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">{werk.title}</h4>
-                          <p className="text-sm text-slate-500 mt-2 line-clamp-2">{werk.description}</p>
+                          <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors uppercase tracking-tight text-sm">{werk.title}</h4>
+                          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{werk.description}</p>
                         </div>
 
-                        <div className="p-5 bg-slate-50 flex-1 space-y-3">
+                        <div className="p-5 bg-slate-50/50 flex-1 space-y-3">
                           <div>
-                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verantwoordelijkheid</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Verantwoordelijkheid</p>
                             <p className="text-xs font-medium text-slate-700">{werk.responsibility}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verwacht Resultaat (SLA)</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Verwacht Resultaat (SLA)</p>
                             <p className="text-xs font-medium text-slate-700">{werk.expectedResult}</p>
                           </div>
                         </div>
 
-                        <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
-                          <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                            <Clock size={13} /> {new Date(werk.startDate).toLocaleDateString('nl-NL')}
+                        <div className="px-5 py-3 border-t border-black/[0.03] flex items-center justify-between bg-white rounded-b-2xl">
+                          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <Clock size={12} /> {new Date(werk.startDate).toLocaleDateString('nl-NL')}
                           </span>
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600">
-                            <MessageSquare size={13} /> Details & Chat
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600">
+                             Details <ArrowRight size={13} />
                           </div>
                         </div>
                       </div>
@@ -467,6 +474,93 @@ export default function DossierDetailPage() {
 
         </div>
       </div>
+
+      {/* ── SIDE DRAWER (DEELOPDRACHT DETAILS & CHAT) ── */}
+      {selectedDeelopdracht && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] transition-opacity duration-300"
+            onClick={() => setSelectedDeelopdracht(null)}
+          />
+          
+          {/* Drawer */}
+          <div className="fixed top-0 right-0 h-screen w-full max-w-lg bg-white shadow-2xl z-[101] flex flex-col transform transition-transform duration-300 ease-out border-l border-black/5">
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-black/[0.03] flex items-center justify-between bg-slate-50/50">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{selectedDeelopdracht.id}</span>
+                <h3 className="text-lg font-bold text-slate-800 leading-tight uppercase tracking-tight">{selectedDeelopdracht.title}</h3>
+              </div>
+              <button 
+                onClick={() => setSelectedDeelopdracht(null)}
+                className="p-2 hover:bg-black/5 rounded-full transition-colors text-slate-400"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            {/* Drawer Body - Scrollable */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+              {/* Details Section */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Specificaties & SLA</h4>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    selectedDeelopdracht.status === 'In_Uitvoering' ? 'bg-blue-100 text-blue-700' :
+                    selectedDeelopdracht.status === 'Herstel_Nodig' ? 'bg-amber-100 text-amber-700' :
+                    'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {selectedDeelopdracht.status.replace('_', ' ')}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-black/5">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-1">Startdatum</p>
+                    <p className="text-xs font-semibold text-slate-800">{new Date(selectedDeelopdracht.startDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-black/5">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-1">Verantwoordelijke</p>
+                    <p className="text-xs font-semibold text-slate-800">{selectedDeelopdracht.responsibility}</p>
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-black/5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-2">Omschrijving</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">{selectedDeelopdracht.description}</p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-blue-50 border border-blue-500/10">
+                  <p className="text-[10px] font-bold text-blue-600/60 uppercase tracking-tight mb-2">Verwacht Resultaat (SLA)</p>
+                  <p className="text-sm font-medium text-blue-900 leading-relaxed">{selectedDeelopdracht.expectedResult}</p>
+                </div>
+
+                {/* Info Alert instead of chat */}
+                <div className="p-5 rounded-2xl bg-amber-50 border border-amber-500/10 flex gap-4">
+                   <AlertTriangle className="text-amber-500 shrink-0" size={20} />
+                   <div>
+                     <p className="text-xs font-bold text-amber-900 uppercase tracking-tight mb-1">Let op</p>
+                     <p className="text-xs text-amber-800/80 leading-relaxed">
+                       Vragen of opmerkingen over deze specifieke werkorder worden centraal afgehandeld via de hoofdpagina van het dossier.
+                     </p>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="p-6 bg-slate-50/50 border-t border-black/[0.03] flex justify-end">
+              <button 
+                onClick={() => setSelectedDeelopdracht(null)}
+                className="px-6 py-2.5 bg-white border border-black/10 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition-all shadow-sm"
+              >
+                Sluiten
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
