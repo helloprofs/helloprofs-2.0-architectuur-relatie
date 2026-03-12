@@ -10,7 +10,8 @@ import {
   Files,
   HelpCircle,
   LogOut,
-  UserCircle
+  UserCircle,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const mspNavItems = [
   { name: "Projecten", href: "/client/projects", icon: FolderKanban },
   { name: "Inkoopopdrachten", href: "/client/purchase-orders", icon: ShoppingCart },
   { name: "Samenwerkingen", href: "/client/dossiers", icon: Files },
+  { name: "Rapportage", href: "/client/reporting", icon: BarChart3 },
   { name: "Relaties", href: "/client/relations", icon: Users },
   { name: "Ondersteuning", href: "/client/support", icon: HelpCircle },
 ];

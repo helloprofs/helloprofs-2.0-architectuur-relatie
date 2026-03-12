@@ -10,6 +10,7 @@ const sectionNames: Record<string, string> = {
   "purchase-orders": "Inkoopopdrachten",
   dossiers: "Samenwerkingsdossiers",
   support: "Ondersteuning",
+  reporting: "Rapportage",
 };
 
 export function TopNavbar() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   mockDossiers, mockPurchaseOrders, mockRelations, mockProjects,
@@ -50,12 +50,14 @@ function EventIcon({ type }: { type: EventType }) {
 export default function DossierDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
 
   const dossier = mockDossiers.find(d => d.id === id);
   const po = mockPurchaseOrders.find(p => p.id === dossier?.purchaseOrderId);
   const isRaamopdracht = po?.type === 'Raamopdracht';
 
-  const [activeTab, setActiveTab] = useState(isRaamopdracht ? 'deelopdrachten' : 'tijdlijn');
+  const [activeTab, setActiveTab] = useState(tabParam || (isRaamopdracht ? 'deelopdrachten' : 'tijdlijn'));
   const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
   const [chatMessage, setChatMessage] = useState('');
   const [messagesList, setMessagesList] = useState(mockDossierMessages.filter(m => m.dossierId === id));

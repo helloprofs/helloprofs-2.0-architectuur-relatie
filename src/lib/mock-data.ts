@@ -289,3 +289,50 @@ export const mockDeelopdrachten: Deelopdracht[] = [
   }
 ];
 
+// --- 6. FACTUREN (Invoices) ---
+export type InvoiceStatus = 'In_Afwachting' | 'Geaccepteerd' | 'Betaald' | 'Afgewezen' | 'Te_Beoordelen';
+
+export interface Invoice {
+  id: string;
+  dossierId: string;
+  relationId: string;
+  amount: number;
+  date: string;
+  dueDate: string;
+  status: InvoiceStatus;
+  description: string;
+}
+
+export const mockInvoices: Invoice[] = [
+  {
+    id: 'INV-1001',
+    dossierId: 'D-3001',
+    relationId: 'R-001',
+    amount: 13750,
+    date: '2025-03-12',
+    dueDate: '2025-04-11',
+    status: 'Te_Beoordelen',
+    description: 'Factuur voor voltooiing kozijnen fase 1'
+  },
+  {
+    id: 'INV-1002',
+    dossierId: 'D-3003',
+    relationId: 'R-002',
+    amount: 850,
+    date: '2025-02-20',
+    dueDate: '2025-03-20',
+    status: 'Betaald',
+    description: 'Vervanging noodverlichting galerij'
+  },
+  {
+    id: 'INV-1003',
+    dossierId: 'D-3003',
+    relationId: 'R-002',
+    amount: 450,
+    date: '2025-03-11',
+    dueDate: '2025-04-10',
+    status: 'In_Afwachting',
+    description: 'Reparatie intercom systeem'
+  }
+];
+
