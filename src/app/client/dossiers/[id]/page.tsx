@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -59,6 +59,18 @@ export default function DossierDetailPage() {
   const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
   const [chatMessage, setChatMessage] = useState('');
   const [messagesList, setMessagesList] = useState(mockDossierMessages.filter(m => m.dossierId === id));
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (activeTab === 'communicatie') {
+      scrollToBottom();
+    }
+  }, [messagesList, activeTab]);
 
   const handleSendMessage = () => {
     if (!chatMessage.trim()) return;
@@ -426,6 +438,7 @@ export default function DossierDetailPage() {
                     </div>
                   ))
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="pt-4 border-t border-black/[0.03]">
