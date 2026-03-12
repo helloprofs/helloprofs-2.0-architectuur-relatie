@@ -60,11 +60,43 @@ export default function ReportingPage() {
     return matchesSearch;
   });
 
+  const handleExport = () => {
+    let csvContent = "";
+    let fileName = `helloprofs_export_${activeView}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    if (activeView !== 'facturen') {
+      // Header for dossiers
+      csvContent = "ID,Inkoopopdracht,Opdrachtnemer,Status\n";
+      filteredDossiers.forEach(d => {
+        const relation = mockRelations.find(r => r.id === d.relationId);
+        const po = mockPurchaseOrders.find(p => p.id === d.purchaseOrderId);
+        csvContent += `${d.id},"${po?.title}","${relation?.name}",${d.status}\n`;
+      });
+    } else {
+      // Header for invoices
+      csvContent = "Factuurnummer,Relatie,Bedrag,Vervaldatum,Status\n";
+      filteredInvoices.forEach(i => {
+        const relation = mockRelations.find(r => r.id === i.relationId);
+        csvContent += `${i.id},"${relation?.name}",${i.amount},${i.dueDate},${i.status}\n`;
+      });
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-6 pb-10">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Rapportage</h2>
+        <h2 className="text-2xl font-bold text-slate-800">Rapportage</h2>
         <p className="text-slate-500 mt-1">Direct inzicht in alle lopende processen, contracten en financiën.</p>
       </div>
 
@@ -100,7 +132,10 @@ export default function ReportingPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer">
+            <button 
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer"
+            >
               <Download size={16} /> Export
             </button>
           </div>
