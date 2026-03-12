@@ -57,6 +57,22 @@ export default function DossierDetailPage() {
 
   const [activeTab, setActiveTab] = useState(isRaamopdracht ? 'deelopdrachten' : 'tijdlijn');
   const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
+  const [chatMessage, setChatMessage] = useState('');
+  const [messagesList, setMessagesList] = useState(mockDossierMessages.filter(m => m.dossierId === id));
+
+  const handleSendMessage = () => {
+    if (!chatMessage.trim()) return;
+    const newMessage = {
+      id: `msg-${Date.now()}`,
+      dossierId: id!,
+      author: 'Tim de Ruiter',
+      role: 'opdrachtgever' as const,
+      message: chatMessage,
+      date: new Date().toISOString(),
+    };
+    setMessagesList([...messagesList, newMessage]);
+    setChatMessage('');
+  };
 
   if (!dossier) return (
     <div className="text-center py-20">
@@ -69,7 +85,7 @@ export default function DossierDetailPage() {
   const project = po ? mockProjects.find(p => p.id === po.projectId) : null;
   const events = mockDossierEvents.filter(e => e.dossierId === id).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const attachments = mockDossierAttachments.filter(a => a.dossierId === id);
-  const messages = mockDossierMessages.filter(m => m.dossierId === id);
+  const messages = messagesList;
   const deelopdrachten = mockDeelopdrachten.filter(d => d.dossierId === id);
 
   const visibleTabs = [
@@ -374,33 +390,64 @@ export default function DossierDetailPage() {
             </div>
           )}
 
-          {/* ── COMMUNICATIE ── */}
+          {/* ── COMMUNICATIE (CHAT) ── */}
           {activeTab === 'communicatie' && (
-            <div className="space-y-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Berichtengeschiedenis</p>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {messages.map(msg => (
-                  <div key={msg.id} className={`flex gap-3 ${msg.role === 'opdrachtgever' ? 'flex-row-reverse' : ''}`}>
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                      <User size={14} className="text-slate-500" />
-                    </div>
-                    <div className={`max-w-sm rounded-xl px-4 py-3 ${msg.role === 'opdrachtgever' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'}`}>
-                      <p className="text-xs font-semibold mb-1 opacity-75">{msg.author}</p>
-                      <p className="text-sm leading-relaxed">{msg.message}</p>
-                      <p className="text-xs mt-2 opacity-60">{new Date(msg.date).toLocaleString('nl-NL', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}</p>
-                    </div>
-                  </div>
-                ))}
+            <div className="flex flex-col h-[500px]">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-800">Berichtengeschiedenis</h3>
+                  <p className="text-[11px] text-slate-400 font-medium uppercase tracking-tight">Directe lijn met {relation?.name || 'opdrachtnemer'}</p>
+                </div>
               </div>
-              <div className="flex gap-2 pt-2 border-t border-slate-100">
-                <input
-                  type="text"
-                  placeholder="Stuur een bericht..."
-                  className="flex-1 px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">
-                  <Send size={15} />
-                </button>
+
+              <div className="flex-1 overflow-y-auto pr-2 space-y-4 mb-4 custom-scrollbar">
+                {messages.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-sm text-slate-400 italic">Nog geen berichten gewisseld.</p>
+                  </div>
+                ) : (
+                  messages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.role === 'opdrachtgever' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] group`}>
+                        <div className={`flex items-center gap-2 mb-1 ${msg.role === 'opdrachtgever' ? 'flex-row-reverse' : ''}`}>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{msg.author}</span>
+                          <span className="text-[10px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {new Date(msg.date).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                          msg.role === 'opdrachtgever' 
+                            ? 'bg-blue-600 text-white rounded-tr-none' 
+                            : 'bg-slate-100 text-slate-800 rounded-tl-none border border-black/5'
+                        }`}>
+                          <p>{msg.message}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-black/[0.03]">
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    placeholder="Typ uw bericht..."
+                    className="flex-1 px-4 py-3 bg-black/[0.03] border-transparent rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white focus:border-blue-500/50 transition-all"
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!chatMessage.trim()}
+                    className="w-11 h-11 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all shrink-0"
+                  >
+                    <Send size={18} />
+                  </button>
+                </form>
               </div>
             </div>
           )}
