@@ -129,6 +129,83 @@ export default function DossierDetailPage() {
     setChatMessage('');
   };
 
+  const handleExport = () => {
+    if (!dossier) return;
+
+    // Build the CSV content
+    const sections = [];
+
+    // Header section
+    sections.push(['DOSSIER EXPORT - ' + dossier.id]);
+    sections.push(['Titel', po?.title || dossier.id]);
+    sections.push(['Status', dossier.status]);
+    sections.push(['Datum Export', new Date().toLocaleString('nl-NL')]);
+    sections.push([]);
+
+    // PO Section
+    if (po) {
+      sections.push(['INKOOPOPDRACHT DETAILS']);
+      sections.push(['PO ID', po.id]);
+      sections.push(['Type', po.type]);
+      sections.push(['Project', project?.name || po.projectId]);
+      sections.push(['Budget', po.budget ? `€${po.budget.toLocaleString('nl-NL')}` : '-']);
+      sections.push(['Omschrijving', po.description]);
+      sections.push([]);
+    }
+
+    // Relation Section
+    if (relation) {
+      sections.push(['RELATIE DETAILS']);
+      sections.push(['Naam', relation.name]);
+      sections.push(['Email', relation.email]);
+      sections.push([]);
+    }
+
+    // Timeline Section
+    const events = mockDossierEvents.filter(e => e.dossierId === id);
+    if (events.length > 0) {
+      sections.push(['TIJDLIJN EVENTS']);
+      sections.push(['Datum', 'Type', 'Beschrijving', 'Actor']);
+      events.forEach(e => {
+        sections.push([
+          new Date(e.date).toLocaleString('nl-NL'),
+          e.type,
+          e.description,
+          e.actor
+        ]);
+      });
+      sections.push([]);
+    }
+
+    // Chat History
+    if (messagesList.length > 0) {
+      sections.push(['COMMUNICATIE LOG']);
+      sections.push(['Datum', 'Auteur', 'Bericht']);
+      messagesList.forEach(m => {
+        sections.push([
+          new Date(m.date).toLocaleString('nl-NL'),
+          m.author,
+          m.message.replace(/\n/g, ' ')
+        ]);
+      });
+      sections.push([]);
+    }
+
+    // Convert arrays to CSV string
+    const csvContent = sections.map(row => row.map(cell => `"${cell || ''}"`).join(',')).join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `dossier_export_${dossier.id}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (!dossier) return (
     <div className="text-center py-20">
       <p className="text-slate-500">Dossier niet gevonden.</p>
@@ -174,10 +251,13 @@ export default function DossierDetailPage() {
               {relation && <span>👤 {relation.name}</span>}
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-3 self-center sm:self-start">
             <StatusBadge status={dossier.status} />
-            <button className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors cursor-pointer">
-              <Download size={13} /> Exporteren
+            <button 
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
+            >
+              <Download size={16} /> Exporteren
             </button>
           </div>
         </div>
