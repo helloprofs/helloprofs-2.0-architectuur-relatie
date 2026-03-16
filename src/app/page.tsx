@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation';
+import { SelectionPage } from '@/components/layout/SelectionPage';
 
 export default function Home() {
-  // Voor dit concept prototype sturen we de gebruiker direct door naar het Client Dashboard
-  redirect('/client/dashboard');
+  return <SelectionPage />;
 }
+

@@ -11,9 +11,11 @@ import {
   HelpCircle,
   LogOut,
   UserCircle,
-  BarChart3
+  BarChart3,
+  ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 const mspNavItems = [
   { name: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
@@ -31,12 +33,13 @@ export function Sidebar() {
   return (
     <aside style={{ width: "260px", minWidth: "260px" }} className="flex flex-col h-screen bg-slate-900 border-r border-slate-800">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 h-16 border-b border-slate-800">
+      <Link href="/" className="flex items-center gap-3 px-6 h-16 border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
         <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
           <span className="text-white font-bold text-sm">h</span>
         </div>
         <span className="text-white font-semibold text-base">helloprofs.nl</span>
-      </div>
+      </Link>
+
 
       {/* User Profile */}
       <div className="px-4 py-5 border-b border-slate-800">
@@ -77,12 +80,20 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-slate-800">
+      <div className="px-3 py-4 border-t border-slate-800 space-y-1">
+        <Link 
+          href="/" 
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-blue-400 hover:text-white hover:bg-blue-600/10 transition-colors"
+        >
+          <ArrowLeftRight size={18} className="flex-shrink-0" />
+          <span>Wissel van Portaal</span>
+        </Link>
         <button className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
           <LogOut size={18} className="flex-shrink-0" />
           <span>Uitloggen</span>
         </button>
       </div>
+
     </aside>
   );
 }
