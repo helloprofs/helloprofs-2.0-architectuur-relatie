@@ -445,7 +445,7 @@ export default function VendorProfilePage() {
 
     return {
       score: Math.round(totalScore),
-      missedPoints: missedPointsList.sort((a, b) => b.missed - a.missed)
+      missedPoints: missedPointsList.sort((a, b) => a.stepId - b.stepId)
     };
   };
 
@@ -467,15 +467,17 @@ export default function VendorProfilePage() {
 
   const improvements = getImprovements();
 
+  const maxAnsweredStep = questions.reduce((max, q) => answers[q.id] ? Math.max(max, q.stepId) : max, 0);
+  const isReachable = (step: number) => step <= maxAnsweredStep + 1;
+
+  const currentQuestion = questions.find(q => q.stepId === currentStep);
+  const isCurrentQuestionAnswered = currentQuestion ? !!answers[currentQuestion.id] : false;
+
   const nextStep = () => {
+    if (!isCurrentQuestionAnswered) return;
+    
     if (currentStep < 17) {
-      // If we don't have the next step defined yet, we could show a placeholder or wait
-      // But for now, we just increment or show result if it's the last implemented one
-      if (currentStep < 17) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        setShowResult(true);
-      }
+      setCurrentStep(currentStep + 1);
     } else {
       setShowResult(true);
     }
@@ -639,13 +641,23 @@ export default function VendorProfilePage() {
             <div className="flex justify-between items-center min-w-[700px] gap-8 px-4">
               {phases.map((phase, idx) => {
                 const isActive = currentStep >= phase.questionRange[0] && currentStep <= phase.questionRange[1];
-                const isCompleted = currentStep > phase.questionRange[1];
+                const questionsInPhase = questions.filter(q => q.stepId >= phase.questionRange[0] && q.stepId <= phase.questionRange[1]);
+                const isCompleted = questionsInPhase.length > 0 && questionsInPhase.every(q => !!answers[q.id]);
+                const reachable = isReachable(phase.questionRange[0]);
                 
                 return (
                   <div key={phase.id} className="flex items-center flex-1 last:flex-none">
                     <button 
-                      onClick={() => setCurrentStep(phase.questionRange[0])}
-                      className="flex flex-col items-center gap-2 relative z-10 group cursor-pointer"
+                      onClick={() => {
+                        if (reachable) {
+                          setCurrentStep(phase.questionRange[0]);
+                        }
+                      }}
+                      disabled={!reachable}
+                      className={cn(
+                        "flex flex-col items-center gap-2 relative z-10 group cursor-pointer",
+                        !reachable && "opacity-50 cursor-not-allowed"
+                      )}
                     >
                       <div 
                         className={cn(
@@ -726,14 +738,23 @@ export default function VendorProfilePage() {
                       
                       return range.map((qNum) => {
                         const isCurrent = qNum === currentStep;
-                        const isDone = qNum < currentStep;
+                        const questionAtNum = questions.find(q => q.stepId === qNum);
+                        const isDone = questionAtNum ? !!answers[questionAtNum.id] : false;
+                        const reachable = isReachable(qNum);
+
                         return (
                           <button 
                             key={qNum}
-                            onClick={() => setCurrentStep(qNum)}
+                            onClick={() => {
+                              if (reachable) {
+                                setCurrentStep(qNum);
+                              }
+                            }}
+                            disabled={!reachable}
                             className={cn(
                               "relative flex items-center justify-center h-6 transition-all duration-500 cursor-pointer group/q",
-                              isCurrent ? "w-10" : "w-6"
+                              isCurrent ? "w-10" : "w-6",
+                              !reachable && "opacity-50 cursor-not-allowed"
                             )}
                           >
                             <div className={cn(
@@ -781,7 +802,11 @@ export default function VendorProfilePage() {
                 </button>
                 <button 
                   onClick={nextStep}
-                  className="flex items-center gap-2 px-8 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                  disabled={!isCurrentQuestionAnswered}
+                  className={cn(
+                    "flex items-center gap-2 px-8 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20",
+                    !isCurrentQuestionAnswered && "opacity-50 cursor-not-allowed"
+                  )}
                 >
                    {currentStep === 17 ? "Profiel Afronden" : "Volgende Vraag"} <ChevronRight size={16} />
                 </button>
