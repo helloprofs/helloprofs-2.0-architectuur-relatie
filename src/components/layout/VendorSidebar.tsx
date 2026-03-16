@@ -14,6 +14,7 @@ import {
   BarChart3,
   ArrowLeftRight
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 
@@ -26,7 +27,9 @@ const vendorNavItems = [
   { name: "Rapportage", href: "/vendor/reporting", icon: BarChart3 },
   { name: "Relaties", href: "/vendor/relations", icon: Users },
   { name: "Ondersteuning", href: "/vendor/support", icon: HelpCircle },
+  { name: "Profiel", href: "/vendor/profile", icon: UserCircle },
 ];
+
 
 
 export function VendorSidebar() {

@@ -11,7 +11,9 @@ const sectionNames: Record<string, string> = {
   dossiers: "Samenwerkingsdossiers",
   support: "Ondersteuning",
   reporting: "Rapportage",
+  profile: "Mijn Profiel",
 };
+
 
 
 export function VendorTopNavbar() {
