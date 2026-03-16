@@ -8,7 +8,6 @@ import {
   FolderKanban,
   ShoppingCart,
   Files,
-  HelpCircle,
   LogOut,
   UserCircle,
   BarChart3,
@@ -26,8 +25,6 @@ const vendorNavItems = [
   { name: "Samenwerkingen", href: "/vendor/dossiers", icon: Files },
   { name: "Rapportage", href: "/vendor/reporting", icon: BarChart3 },
   { name: "Relaties", href: "/vendor/relations", icon: Users },
-  { name: "Ondersteuning", href: "/vendor/support", icon: HelpCircle },
-  { name: "Profiel", href: "/vendor/profile", icon: UserCircle },
 ];
 
 
@@ -48,20 +45,15 @@ export function VendorSidebar() {
 
       {/* User Profile */}
       <div className="px-4 py-5 border-b border-indigo-900">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-indigo-800 flex items-center justify-center flex-shrink-0">
-            <UserCircle size={20} className="text-indigo-200" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">Zelfstandig Prof B.V.</p>
-            <span className="text-xs text-indigo-400">Opdrachtnemer</span>
-          </div>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-sm font-semibold text-white">Opdrachtnemer</p>
+          <span className="text-xs text-indigo-400">Hoofdaccount</span>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <p className="px-3 mb-2 text-xs font-semibold text-indigo-500 uppercase tracking-wider">Vendor Menu</p>
+        <p className="px-3 mb-2 text-xs font-semibold text-indigo-500 uppercase tracking-wider">menu</p>
         <div className="space-y-0.5">
           {vendorNavItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
@@ -93,10 +85,6 @@ export function VendorSidebar() {
           <ArrowLeftRight size={18} className="flex-shrink-0" />
           <span>Wissel van Portaal</span>
         </Link>
-        <button className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-indigo-300 hover:text-white hover:bg-indigo-900 transition-colors">
-          <LogOut size={18} className="flex-shrink-0" />
-          <span>Uitloggen</span>
-        </button>
       </div>
 
     </aside>

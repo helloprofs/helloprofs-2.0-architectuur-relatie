@@ -8,7 +8,6 @@ import {
   FolderKanban,
   ShoppingCart,
   Files,
-  HelpCircle,
   LogOut,
   UserCircle,
   BarChart3,
@@ -24,7 +23,6 @@ const mspNavItems = [
   { name: "Samenwerkingen", href: "/client/dossiers", icon: Files },
   { name: "Rapportage", href: "/client/reporting", icon: BarChart3 },
   { name: "Relaties", href: "/client/relations", icon: Users },
-  { name: "Ondersteuning", href: "/client/support", icon: HelpCircle },
 ];
 
 export function Sidebar() {
@@ -43,14 +41,9 @@ export function Sidebar() {
 
       {/* User Profile */}
       <div className="px-4 py-5 border-b border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-            <UserCircle size={20} className="text-slate-300" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">Opdrachtgever B.V.</p>
-            <span className="text-xs text-blue-400">Hoofdaccount</span>
-          </div>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-sm font-semibold text-white">Opdrachtgever</p>
+          <span className="text-xs text-blue-400">Hoofdaccount</span>
         </div>
       </div>
 
@@ -88,10 +81,6 @@ export function Sidebar() {
           <ArrowLeftRight size={18} className="flex-shrink-0" />
           <span>Wissel van Portaal</span>
         </Link>
-        <button className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-          <LogOut size={18} className="flex-shrink-0" />
-          <span>Uitloggen</span>
-        </button>
       </div>
 
     </aside>
