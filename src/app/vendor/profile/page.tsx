@@ -295,98 +295,167 @@ export default function VendorProfilePage() {
 
 
 
-  const calculateScore = () => {
-    const totalQuestions = 17; // We target 17 total questions
-    let scoredPoints = 0;
+  const getScoringDetails = () => {
+    // Definieer de gewichten per vraag (som = 100)
+    const weights: Record<string, number> = {
+      nature_of_work: 7.81,
+      autonomy_how_when: 22.97,
+      fixed_duration: 7.81,
+      error_responsibility: 2.08,
+      materials_purchase: 3.18,
+      business_assets: 3.18,
+      work_clothing: 3.18,
+      activity_participation: 3.18,
+      btw_charging: 6.30,
+      payment_risk: 2.08,
+      number_of_clients: 5.98,
+      insurance_choice: 2.08,
+      general_terms: 6.25,
+      tax_obligations: 5.98,
+      advertising_marketing: 5.98,
+      continuing_education: 5.98,
+      business_continuity: 5.98,
+    };
+    let totalScore = 0;
+    let qPoints = 0;
+    const missedPointsList: Array<{ id: string, label: string, missed: number, stepId: number }> = [];
     
-    // nature_of_work scoring
-    if (answers.nature_of_work === "Ik werk als specialist met eigen expertise en regie.") scoredPoints += 1;
-    if (answers.nature_of_work === "Mijn inzet varieert tussen specialistisch en flexibel werk.") scoredPoints += 0.5;
+    const checkValue = (id: string, earnedPoints: number) => {
+      totalScore += earnedPoints;
+      const weight = weights[id];
+      if (earnedPoints < weight) {
+        const q = questions.find(q => q.id === id);
+        if (q) {
+          missedPointsList.push({
+            id: q.id,
+            label: q.label,
+            missed: Math.round((weight - earnedPoints) * 100) / 100,
+            stepId: q.stepId
+          });
+        }
+      }
+    };
 
-    // autonomy_how_when scoring
-    if (answers.autonomy_how_when === "Volledig zelfstandig: Ik bepaal alles zonder opdrachtgeverstoezicht.") scoredPoints += 1;
-    if (answers.autonomy_how_when === "Grotendeels zelfstandig: Ik bepaal zelf, maar volg enkele afspraken.") scoredPoints += 0.7;
-    if (answers.autonomy_how_when === "Beperkt zelfstandig: Opdrachtgever bepaalt deels mijn planning en werkwijze.") scoredPoints += 0.3;
+    
+    // 1. nature_of_work (7.81)
+    qPoints = 0;
+    if (answers.nature_of_work === "Ik werk als specialist met eigen expertise en regie.") qPoints = weights.nature_of_work;
+    else if (answers.nature_of_work === "Mijn inzet varieert tussen specialistisch en flexibel werk.") qPoints = weights.nature_of_work * 0.5;
+    checkValue("nature_of_work", qPoints);
 
-    // fixed_duration scoring
-    if (answers.fixed_duration === "Ja, deze opdracht is tijdelijk en heeft een einddatum.") scoredPoints += 1;
+    // 2. autonomy_how_when (22.97)
+    qPoints = 0;
+    if (answers.autonomy_how_when === "Volledig zelfstandig: Ik bepaal alles zonder opdrachtgeverstoezicht.") qPoints = weights.autonomy_how_when;
+    else if (answers.autonomy_how_when === "Grotendeels zelfstandig: Ik bepaal zelf, maar volg enkele afspraken.") qPoints = weights.autonomy_how_when * 0.7;
+    else if (answers.autonomy_how_when === "Beperkt zelfstandig: Opdrachtgever bepaalt deels mijn planning en werkwijze.") qPoints = weights.autonomy_how_when * 0.3;
+    checkValue("autonomy_how_when", qPoints);
 
-    // error_responsibility scoring
-    if (answers.error_responsibility === "Volledig verantwoordelijk: Ik draag alle gevolgen bij fouten.") scoredPoints += 1;
-    if (answers.error_responsibility === "Gedeeltelijk verantwoordelijk: Ik draag deels verantwoordelijkheid") scoredPoints += 0.5;
+    // 3. fixed_duration (7.81)
+    qPoints = 0;
+    if (answers.fixed_duration === "Ja, deze opdracht is tijdelijk en heeft een einddatum.") qPoints = weights.fixed_duration;
+    checkValue("fixed_duration", qPoints);
 
-    // materials_purchase scoring
-    if (answers.materials_purchase === "Volledig eigen beheer: Ik koop en betaal alle materialen.") scoredPoints += 1;
-    if (answers.materials_purchase === "Gedeeltelijk eigen beheer: Ik gebruik zowel eigen als materialen van opdrachtgever.") scoredPoints += 0.5;
-    if (answers.materials_purchase === "Niet van toepassing: Mijn werk vereist geen materialen.") scoredPoints += 1;
+    // 4. error_responsibility
+    qPoints = 0;
+    if (answers.error_responsibility === "Volledig verantwoordelijk: Ik draag alle gevolgen bij fouten.") qPoints = weights.error_responsibility;
+    else if (answers.error_responsibility === "Gedeeltelijk verantwoordelijk: Ik draag deels verantwoordelijkheid") qPoints = weights.error_responsibility * 0.5;
+    checkValue("error_responsibility", qPoints);
 
-    // business_assets scoring
-    if (answers.business_assets === "Ja, ik werk alleen met mijn eigen bedrijfsmiddelen.") scoredPoints += 1;
-    if (answers.business_assets === "Gedeeltelijk: Ik gebruik zowel eigen bedrijfsmiddelen als die van opdrachtgever.") scoredPoints += 0.5;
-    if (answers.business_assets === "Niet van toepassing: Mijn werk vereist geen eigen bedrijfsmiddelen.") scoredPoints += 1;
+    // 5. materials_purchase
+    qPoints = 0;
+    if (answers.materials_purchase === "Volledig eigen beheer: Ik koop en betaal alle materialen.") qPoints = weights.materials_purchase;
+    else if (answers.materials_purchase === "Gedeeltelijk eigen beheer: Ik gebruik zowel eigen als materialen van opdrachtgever.") qPoints = weights.materials_purchase * 0.5;
+    else if (answers.materials_purchase === "Niet van toepassing: Mijn werk vereist geen materialen.") qPoints = weights.materials_purchase;
+    checkValue("materials_purchase", qPoints);
 
-    // work_clothing scoring
-    if (answers.work_clothing === "Ik regel het volledig zelf en betaal alles.") scoredPoints += 1;
-    if (answers.work_clothing === "Opdrachtgever regelt bedrijfskleding en factureert aan mij.") scoredPoints += 0.7;
-    if (answers.work_clothing === "Gedeeltelijk zelf: Ik gebruik eigen kleding, de opdrachtgever geeft soms aanvullende items als hesjes of veiligheidskleding.") scoredPoints += 0.5;
-    if (answers.work_clothing === "Niet van toepassing: Mijn werk vereist geen bedrijfskleding.") scoredPoints += 1;
+    // 6. business_assets
+    qPoints = 0;
+    if (answers.business_assets === "Ja, ik werk alleen met mijn eigen bedrijfsmiddelen.") qPoints = weights.business_assets;
+    else if (answers.business_assets === "Gedeeltelijk: Ik gebruik zowel eigen bedrijfsmiddelen als die van opdrachtgever.") qPoints = weights.business_assets * 0.5;
+    else if (answers.business_assets === "Niet van toepassing: Mijn werk vereist geen eigen bedrijfsmiddelen.") qPoints = weights.business_assets;
+    checkValue("business_assets", qPoints);
 
-    // activity_participation scoring
-    if (answers.activity_participation === "Nee, ik neem niet deel aan deze activiteiten.") scoredPoints += 1;
-    if (answers.activity_participation === "Soms, alleen als dit functioneel noodzakelijk is.") scoredPoints += 0.5;
+    // 7. work_clothing
+    qPoints = 0;
+    if (answers.work_clothing === "Ik regel het volledig zelf en betaal alles.") qPoints = weights.work_clothing;
+    else if (answers.work_clothing === "Opdrachtgever regelt bedrijfskleding en factureert aan mij.") qPoints = weights.work_clothing * 0.7;
+    else if (answers.work_clothing === "Gedeeltelijk zelf: Ik gebruik eigen kleding, de opdrachtgever geeft soms aanvullende items als hesjes of veiligheidskleding.") qPoints = weights.work_clothing * 0.5;
+    else if (answers.work_clothing === "Niet van toepassing: Mijn werk vereist geen bedrijfskleding.") qPoints = weights.work_clothing;
+    checkValue("work_clothing", qPoints);
 
-    // btw_charging scoring
-    if (answers.btw_charging === "Ik factureer met 21% of 9% BTW.") scoredPoints += 1;
+    // 8. activity_participation
+    qPoints = 0;
+    if (answers.activity_participation === "Nee, ik neem niet deel aan deze activiteiten.") qPoints = weights.activity_participation;
+    else if (answers.activity_participation === "Soms, alleen als dit functioneel noodzakelijk is.") qPoints = weights.activity_participation * 0.5;
+    checkValue("activity_participation", qPoints);
 
-    // payment_risk scoring
-    if (answers.payment_risk === "Ik loop volledig risico en moet zelf achter mijn geld aan.") scoredPoints += 1;
-    if (answers.payment_risk === "Ik beperk risico, bijvoorbeeld met boeterente, incassobeleid of factoring. Maar loop nog risico.") scoredPoints += 0.7;
+    // 9. btw_charging
+    qPoints = 0;
+    if (answers.btw_charging === "Ik factureer met 21% of 9% BTW.") qPoints = weights.btw_charging;
+    checkValue("btw_charging", qPoints);
 
-    // number_of_clients scoring
-    if (answers.number_of_clients === "2-3 opdrachtgevers: Ik spreid mijn inkomsten en opdrachten.") scoredPoints += 0.7;
-    if (answers.number_of_clients === "4+ opdrachtgevers: Ik ben minder afhankelijk van één klant.") scoredPoints += 1;
+    // 10. payment_risk
+    qPoints = 0;
+    if (answers.payment_risk === "Ik loop volledig risico en moet zelf achter mijn geld aan.") qPoints = weights.payment_risk;
+    else if (answers.payment_risk === "Ik beperk risico, bijvoorbeeld met boeterente, incassobeleid of factoring. Maar loop nog risico.") qPoints = weights.payment_risk * 0.7;
+    checkValue("payment_risk", qPoints);
 
-    // insurance_choice scoring
-    if (answers.insurance_choice === "Ja, ik heb verzekeringen en neem zelf risico's voor onverzekerde zaken.") scoredPoints += 1;
-    if (answers.insurance_choice === "Ja, ik ben bezig met keuzes en begrijp de financiële risico's.") scoredPoints += 0.5;
-    if (answers.insurance_choice === "Nee, ik heb geen verzekeringen en accepteer alle ondernemersrisico's zelf.") scoredPoints += 1; // Accepting own risk is also entrepreneurial
+    // 11. number_of_clients
+    qPoints = 0;
+    if (answers.number_of_clients === "4+ opdrachtgevers: Ik ben minder afhankelijk van één klant.") qPoints = weights.number_of_clients;
+    else if (answers.number_of_clients === "2-3 opdrachtgevers: Ik spreid mijn inkomsten en opdrachten.") qPoints = weights.number_of_clients * 0.7;
+    checkValue("number_of_clients", qPoints);
 
-    // general_terms scoring
-    if (answers.general_terms === "Ja, ik hanteer eigen algemene voorwaarden bij opdrachten en voeg deze zelf als bijlage bij de offerte toe.") scoredPoints += 1;
-    if (answers.general_terms === "Ja, ik gebruik de voorwaarden die helloprofs.nl voor mij heeft opgesteld.") scoredPoints += 0.7;
+    // 12. insurance_choice
+    qPoints = 0;
+    if (answers.insurance_choice === "Ja, ik heb verzekeringen en neem zelf risico's voor onverzekerde zaken.") qPoints = weights.insurance_choice;
+    else if (answers.insurance_choice === "Nee, ik heb geen verzekeringen en accepteer alle ondernemersrisico's zelf.") qPoints = weights.insurance_choice;
+    else if (answers.insurance_choice === "Ja, ik ben bezig met keuzes en begrijp de financiële risico's.") qPoints = weights.insurance_choice * 0.5;
+    checkValue("insurance_choice", qPoints);
 
-    // tax_obligations scoring
-    if (answers.tax_obligations === "Ja, mijn administratie is volledig op orde.") scoredPoints += 1;
-    if (answers.tax_obligations === "Gedeeltelijk, ik voldoe deels maar moet verbeteren.") scoredPoints += 0.5;
+    // 13. general_terms
+    qPoints = 0;
+    if (answers.general_terms === "Ja, ik hanteer eigen algemene voorwaarden bij opdrachten en voeg deze zelf als bijlage bij de offerte toe.") qPoints = weights.general_terms;
+    else if (answers.general_terms === "Ja, ik gebruik de voorwaarden die helloprofs.nl voor mij heeft opgesteld.") qPoints = weights.general_terms * 0.7;
+    checkValue("general_terms", qPoints);
 
-    // advertising_marketing scoring
-    if (answers.advertising_marketing === "Ik investeer in reclame en promoot mijn bedrijf actief (bijvoorbeeld via helloprofs.nl)") scoredPoints += 1;
-    if (answers.advertising_marketing === "Ik doe soms promotie, maar investeer er niet in.") scoredPoints += 0.5;
+    // 14. tax_obligations
+    qPoints = 0;
+    if (answers.tax_obligations === "Ja, mijn administratie is volledig op orde.") qPoints = weights.tax_obligations;
+    else if (answers.tax_obligations === "Gedeeltelijk, ik voldoe deels maar moet verbeteren.") qPoints = weights.tax_obligations * 0.5;
+    checkValue("tax_obligations", qPoints);
 
-    // continuing_education scoring
-    if (answers.continuing_education === "Ja, ik regel zelf mijn bijscholing en ontwikkeling.") scoredPoints += 1;
-    if (answers.continuing_education === "Ja, ik volg bijscholing via mijn opdrachtgever, maar ik betaal die zelf.") scoredPoints += 0.8;
+    // 15. advertising_marketing
+    qPoints = 0;
+    if (answers.advertising_marketing === "Ik investeer in reclame en promoot mijn bedrijf actief (bijvoorbeeld via helloprofs.nl)") qPoints = weights.advertising_marketing;
+    else if (answers.advertising_marketing === "Ik doe soms promotie, maar investeer er niet in.") qPoints = weights.advertising_marketing * 0.5;
+    checkValue("advertising_marketing", qPoints);
 
-    // business_continuity scoring
-    if (answers.business_continuity === "Ik bouw een breed klantenbestand en investeer in groei.") scoredPoints += 1;
-    if (answers.business_continuity === "Ik zorg voor klanten, maar zonder vaste aanpak.") scoredPoints += 0.5;
+    // 16. continuing_education
+    qPoints = 0;
+    if (answers.continuing_education === "Ja, ik regel zelf mijn bijscholing en ontwikkeling.") qPoints = weights.continuing_education;
+    else if (answers.continuing_education === "Ja, ik volg bijscholing via mijn opdrachtgever, maar ik betaal die zelf.") qPoints = weights.continuing_education * 0.8;
+    checkValue("continuing_education", qPoints);
 
-    return Math.round((scoredPoints / totalQuestions) * 100);
+    // 17. business_continuity
+    qPoints = 0;
+    if (answers.business_continuity === "Ik bouw een breed klantenbestand en investeer in groei.") qPoints = weights.business_continuity;
+    else if (answers.business_continuity === "Ik zorg voor klanten, maar zonder vaste aanpak.") qPoints = weights.business_continuity * 0.5;
+    checkValue("business_continuity", qPoints);
+
+    return {
+      score: Math.round(totalScore),
+      missedPoints: missedPointsList.sort((a, b) => b.missed - a.missed)
+    };
   };
 
+  const { score, missedPoints } = getScoringDetails();
 
 
 
 
 
 
-
-
-
-
-
-
-  const score = calculateScore();
 
   const getImprovements = () => {
     const list = [];
@@ -518,14 +587,33 @@ export default function VendorProfilePage() {
                  </p>
               </div>
 
-              {improvements.length > 0 && (
+              {missedPoints.length > 0 && (
                 <div className="w-full text-left space-y-4 pt-4">
-                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Verbeterpunten</h4>
+                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Verbeterkansen (Punten verloren)</h4>
                    <div className="space-y-3">
-                      {improvements.map((item, i) => (
-                         <div key={i} className="flex gap-3 p-4 bg-orange-50 border border-orange-100 rounded-xl font-medium text-orange-900">
-                            <Info size={18} className="text-orange-600 shrink-0" />
-                            <p className="text-sm">{item}</p>
+                      {missedPoints.map((point) => (
+                         <div key={point.id} className="group/item flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-white transition-all">
+                            <div className="flex gap-4">
+                               <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sm font-black text-slate-400 group-hover/item:text-indigo-600 group-hover/item:border-indigo-100 transition-colors shrink-0 shadow-sm">
+                                  {point.stepId}
+                               </div>
+                               <div>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Vraag {point.stepId}</p>
+                                  <p className="text-sm font-semibold text-slate-700 leading-snug line-clamp-2">{point.label}</p>
+                               </div>
+                            </div>
+                            <div className="flex items-center gap-4 shrink-0 px-2 sm:px-0">
+                               <div className="text-right">
+                                  <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Potentieel</p>
+                                  <p className="text-sm font-black text-rose-600">-{point.missed}%</p>
+                               </div>
+                               <button 
+                                 onClick={() => { setCurrentStep(point.stepId); setShowResult(false); }}
+                                 className="p-2.5 rounded-xl bg-white border border-slate-200 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all cursor-pointer shadow-sm"
+                               >
+                                  <ChevronRight size={18} />
+                               </button>
+                            </div>
                          </div>
                       ))}
                    </div>
@@ -640,24 +728,25 @@ export default function VendorProfilePage() {
                         const isCurrent = qNum === currentStep;
                         const isDone = qNum < currentStep;
                         return (
-                          <div 
+                          <button 
                             key={qNum}
+                            onClick={() => setCurrentStep(qNum)}
                             className={cn(
-                              "relative flex items-center justify-center h-6 transition-all duration-500",
+                              "relative flex items-center justify-center h-6 transition-all duration-500 cursor-pointer group/q",
                               isCurrent ? "w-10" : "w-6"
                             )}
                           >
                             <div className={cn(
                                "absolute inset-0 rounded-full transition-all duration-500",
-                               isCurrent ? "bg-indigo-600" : isDone ? "bg-emerald-500" : "bg-slate-200"
+                               isCurrent ? "bg-indigo-600 shadow-sm" : isDone ? "bg-emerald-500" : "bg-slate-200 group-hover/q:bg-slate-300"
                             )} />
                             <span className={cn(
                               "relative z-10 text-[10px] font-black transition-colors duration-500",
-                              isCurrent || isDone ? "text-white" : "text-slate-400"
+                              isCurrent || isDone ? "text-white" : "text-slate-400 group-hover/q:text-slate-600"
                             )}>
                               {qNum}
                             </span>
-                          </div>
+                          </button>
                         );
                       });
                    })()}
