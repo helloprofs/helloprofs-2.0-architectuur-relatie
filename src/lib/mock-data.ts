@@ -290,17 +290,41 @@ export const mockDeelopdrachten: Deelopdracht[] = [
 ];
 
 // --- 6. FACTUREN (Invoices) ---
-export type InvoiceStatus = 'In_Afwachting' | 'Geaccepteerd' | 'Betaald' | 'Afgewezen' | 'Te_Beoordelen';
+export type InvoiceStatus = 
+  | 'Factuur_Aangemaakt' 
+  | 'Concept_Verstuurd' 
+  | 'Herziening_Nodig' 
+  | 'Factuur_Verstuurd' 
+  | 'Betaald' 
+  | 'Gecrediteerd';
+
+export interface InvoiceLine {
+  description: string;
+  quantity: number;
+  rate: number;
+  vatPercentage: number;
+}
+
+export interface InvoiceLog {
+  date: string;
+  action: string;
+  actor: string;
+}
 
 export interface Invoice {
   id: string;
   dossierId: string;
   relationId: string;
-  amount: number;
   date: string;
   dueDate: string;
   status: InvoiceStatus;
   description: string;
+  isConcept: boolean;
+  invoiceNumber: string;
+  lines: InvoiceLine[];
+  bankAccount: string;
+  paymentTerm: string;
+  logs: InvoiceLog[];
 }
 
 export const mockInvoices: Invoice[] = [
@@ -308,31 +332,62 @@ export const mockInvoices: Invoice[] = [
     id: 'INV-1001',
     dossierId: 'D-3001',
     relationId: 'R-001',
-    amount: 13750,
     date: '2025-03-12',
     dueDate: '2025-04-11',
-    status: 'Te_Beoordelen',
-    description: 'Factuur voor voltooiing kozijnen fase 1'
+    status: 'Factuur_Verstuurd',
+    description: 'Factuur voor voltooiing kozijnen fase 1',
+    isConcept: false,
+    invoiceNumber: '2025-001',
+    bankAccount: 'NL01 ABNA 0123 4567 89',
+    paymentTerm: '30 dagen',
+    lines: [
+      { description: 'Aftimmeren kozijnen kavel 1-5', quantity: 5, rate: 1500, vatPercentage: 21 },
+      { description: 'Aftimmeren kozijnen kavel 6-10', quantity: 5, rate: 1500, vatPercentage: 21 },
+      { description: 'Materiaalkosten profielen', quantity: 1, rate: 2500, vatPercentage: 21 }
+    ],
+    logs: [
+      { date: '2025-03-12T10:00:00', action: 'Factuur aangemaakt', actor: 'Jan de Bouwer' },
+      { date: '2025-03-12T10:05:00', action: 'Factuur verzonden naar opdrachtgever', actor: 'Jan de Bouwer' }
+    ]
   },
   {
     id: 'INV-1002',
     dossierId: 'D-3003',
     relationId: 'R-002',
-    amount: 850,
     date: '2025-02-20',
     dueDate: '2025-03-20',
     status: 'Betaald',
-    description: 'Vervanging noodverlichting galerij'
+    description: 'Vervanging noodverlichting galerij',
+    isConcept: false,
+    invoiceNumber: '2025-002',
+    bankAccount: 'NL99 INGB 0987 6543 21',
+    paymentTerm: '30 dagen',
+    lines: [
+      { description: 'Vervanging armaturen galerij', quantity: 10, rate: 85, vatPercentage: 21 }
+    ],
+    logs: [
+      { date: '2025-02-20T09:00:00', action: 'Factuur aangemaakt', actor: 'Marc de Vriend' },
+      { date: '2025-03-15T14:00:00', action: 'Betaling geregistreerd', actor: 'Systeem' }
+    ]
   },
   {
     id: 'INV-1003',
     dossierId: 'D-3003',
     relationId: 'R-002',
-    amount: 450,
     date: '2025-03-11',
     dueDate: '2025-04-10',
-    status: 'In_Afwachting',
-    description: 'Reparatie intercom systeem'
+    status: 'Herziening_Nodig',
+    description: 'Reparatie intercom systeem',
+    isConcept: true,
+    invoiceNumber: '2025-003',
+    bankAccount: 'NL99 INGB 0987 6543 21',
+    paymentTerm: '30 dagen',
+    lines: [
+      { description: 'Diagnose & Reparatie intercom 4b', quantity: 1, rate: 450, vatPercentage: 21 }
+    ],
+    logs: [
+      { date: '2025-03-11T11:00:00', action: 'Conceptfactuur aangemaakt voor controle', actor: 'Marc de Vriend' }
+    ]
   }
 ];
 

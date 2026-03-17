@@ -6,7 +6,8 @@ import Link from "next/link";
 import {
   mockDossiers, mockPurchaseOrders, mockRelations, mockProjects,
   mockDossierEvents, mockDossierAttachments, mockDossierMessages, mockDeelopdrachten,
-  DossierStatus, EventType
+  mockInvoices,
+  DossierStatus, EventType, Invoice, InvoiceLine
 } from "@/lib/mock-data";
 import {
   ArrowLeft, ArrowRight, Clock, FileText, FileCheck, Hammer, Receipt,
@@ -61,6 +62,11 @@ export default function DossierDetailPage() {
   const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
   const [chatMessage, setChatMessage] = useState('');
   const [messagesList, setMessagesList] = useState(mockDossierMessages.filter(m => m.dossierId === id));
+
+  const [localEvents, setLocalEvents] = useState(mockDossierEvents.filter(e => e.dossierId === id));
+  const [localInvoices, setLocalInvoices] = useState<Invoice[]>(mockInvoices.filter(i => (i as Invoice).dossierId === id));
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+
 
   // State for Deelopdracht Drawer
   const [selectedDeelopdracht, setSelectedDeelopdracht] = useState<typeof mockDeelopdrachten[0] | null>(null);
@@ -128,6 +134,65 @@ export default function DossierDetailPage() {
     setMessagesList([...messagesList, newMessage]);
     setChatMessage('');
   };
+
+  const handleApproveInvoice = (invoiceId: string) => {
+    const invoice = localInvoices.find(i => i.id === invoiceId);
+    if (!invoice) return;
+
+    setLocalInvoices(prev => prev.map(inv => 
+      inv.id === invoiceId 
+        ? { 
+            ...inv, 
+            status: 'Factuur_Verstuurd', 
+            isConcept: false, 
+            logs: [...inv.logs, { date: new Date().toISOString(), action: 'Factuur goedgekeurd', actor: 'Tim de Ruiter' }] 
+          }
+        : inv
+    ));
+
+    const newEvent = {
+        id: `ev-${Date.now()}`,
+        dossierId: id!,
+        type: 'inkoopopdracht_geaccepteerd' as any, // Using an existing icon type for now
+        description: `Factuur ${invoice.invoiceNumber} goedgekeurd door opdrachtgever`,
+        date: new Date().toISOString(),
+        actor: 'Tim de Ruiter',
+        linkedSection: 'factuur'
+    };
+    setLocalEvents([newEvent, ...localEvents]);
+    setSelectedInvoice(null);
+  };
+
+  const handleRequestChanges = (invoiceId: string) => {
+    const invoice = localInvoices.find(i => i.id === invoiceId);
+    if (!invoice) return;
+
+    const reason = prompt("Geef een reden op voor het vragen van aanpassingen:");
+    if (!reason) return;
+
+    setLocalInvoices(prev => prev.map(inv => 
+      inv.id === invoiceId 
+        ? { 
+            ...inv, 
+            status: 'Herziening_Nodig', 
+            logs: [...inv.logs, { date: new Date().toISOString(), action: `Herziening nodig: ${reason}`, actor: 'Tim de Ruiter' }] 
+          }
+        : inv
+    ));
+
+    const newEvent = {
+        id: `ev-${Date.now()}`,
+        dossierId: id!,
+        type: 'inkoopopdracht_geweigerd' as any, 
+        description: `Aanpassingen gevraagd voor factuur ${invoice.invoiceNumber}: ${reason}`,
+        date: new Date().toISOString(),
+        actor: 'Tim de Ruiter',
+        linkedSection: 'factuur'
+    };
+    setLocalEvents([newEvent, ...localEvents]);
+    setSelectedInvoice(null);
+  };
+
 
   const handleExport = () => {
     if (!dossier) return;
@@ -215,7 +280,8 @@ export default function DossierDetailPage() {
 
   const relation = mockRelations.find(r => r.id === dossier.relationId);
   const project = po ? mockProjects.find(p => p.id === po.projectId) : null;
-  const events = mockDossierEvents.filter(e => e.dossierId === id).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const events = [...localEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
   const attachments = mockDossierAttachments.filter(a => a.dossierId === id);
   const messages = messagesList;
   const deelopdrachten = mockDeelopdrachten.filter(d => d.dossierId === id);
@@ -228,7 +294,11 @@ export default function DossierDetailPage() {
     { id: 'bijlagen', label: 'Bijlagen', icon: Paperclip },
     { id: 'communicatie', label: 'Communicatie', icon: MessageSquare },
     { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
+    { id: 'factuur', label: 'Factuur', icon: Receipt },
   ];
+
+  const invoices = localInvoices;
+
 
   return (
     <div className="space-y-6">
@@ -280,12 +350,195 @@ export default function DossierDetailPage() {
               {tab.id === 'deelopdrachten' && deelopdrachten.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{deelopdrachten.length}</span>}
               {tab.id === 'bijlagen' && attachments.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{attachments.length}</span>}
               {tab.id === 'communicatie' && messages.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{messages.length}</span>}
+              {tab.id === 'factuur' && invoices.length > 0 && <span className="ml-1 bg-slate-200 text-slate-600 rounded-full text-xs px-1.5 py-0.5">{invoices.length}</span>}
             </button>
           ))}
         </div>
 
         {/* Tab Content */}
         <div className="p-6">
+
+          {/* ── FACTUUR ── */}
+          {activeTab === 'factuur' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-end mb-2">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Facturatie</h3>
+                  <p className="text-sm text-slate-500 mt-1">Overzicht van alle financiële vastleggingen binnen dit dossier.</p>
+                </div>
+              </div>
+
+              {invoices.length === 0 ? (
+                <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                  <Receipt size={32} className="text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-slate-600">Nog geen facturen beschikbaar</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Zodra de opdrachtnemer een (concept)factuur indient, verschijnt deze hier.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {invoices.map((invoice: Invoice) => {
+                    const subtotal = invoice.lines.reduce((acc: number, line: InvoiceLine) => acc + (line.quantity * line.rate), 0);
+                    const vat = invoice.lines.reduce((acc: number, line: InvoiceLine) => acc + (line.quantity * line.rate * (line.vatPercentage / 100)), 0);
+                    const total = subtotal + vat;
+
+                    return (
+                      <div key={invoice.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="p-5 flex items-start justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-lg ${invoice.status === 'Betaald' ? 'bg-emerald-50 text-emerald-600' : invoice.status === 'Concept_Verstuurd' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
+                              <Receipt size={24} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-mono font-bold text-slate-400">{invoice.id}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                    invoice.status === 'Betaald' ? 'bg-emerald-100 text-emerald-700' :
+                                    invoice.status === 'Concept_Verstuurd' ? 'bg-amber-100 text-amber-700' :
+                                      invoice.status === 'Herziening_Nodig' ? 'bg-red-100 text-red-700' :
+                                        'bg-indigo-100 text-indigo-700'
+                                  }`}>
+                                    {invoice.status.replace('_', ' ')}
+                                  </span>
+                                </div>
+                                <h4 className="font-bold text-slate-800">{invoice.description}</h4>
+                                <p className="text-xs text-slate-500 mt-1">Factuurdatum: {new Date(invoice.date).toLocaleDateString('nl-NL')}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-xl font-bold text-slate-900">€{total.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</p>
+                             <p className="text-xs text-slate-400 mt-0.5">incl. BTW (Excl. €{subtotal.toLocaleString('nl-NL', { minimumFractionDigits: 2 })})</p>
+                             <div className="mt-3 flex gap-2 justify-end">
+                                {invoice.status === 'Concept_Verstuurd' && (
+                                  <button 
+                                    onClick={() => setSelectedInvoice(invoice)}
+                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                  >
+                                    Controleren
+                                  </button>
+                                )}
+                                <button className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                                  <Download size={14} /> PDF
+                                </button>
+                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+               <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 flex gap-4">
+                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                   <Receipt size={20} className="text-blue-600" />
+                 </div>
+                 <div>
+                   <h4 className="text-sm font-bold text-blue-900">Nieuw: Directe facturatie</h4>
+                   <p className="text-xs text-blue-800/80 leading-relaxed mt-1">
+                     In deze opzet kan de opdrachtnemer direct factureren. Een voorafgaande werkorder is niet langer verplicht, wat de administratieve last verkort. Conceptfacturen kunt u hierboven eerst controleren voordat ze definitief worden.
+                   </p>
+                 </div>
+               </div>
+            </div>
+          )}
+
+          {/* ── INVOICE REVIEW MODAL (CLIENT) ── */}
+          {selectedInvoice && (
+            <>
+              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200]" onClick={() => setSelectedInvoice(null)} />
+              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl shadow-2xl z-[201] overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-blue-50/50">
+                  <div>
+                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{selectedInvoice.isConcept ? 'Concept Controle' : 'Factuur Details'}</span>
+                    <h3 className="text-xl font-bold text-slate-900">{selectedInvoice.id} - {selectedInvoice.description}</h3>
+                  </div>
+                  <button onClick={() => setSelectedInvoice(null)} className="text-slate-400 hover:text-slate-600"><XCircle size={24} /></button>
+                </div>
+                
+                <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                   <div className="grid grid-cols-2 gap-8 text-sm">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase">Factuurdatum</p>
+                         <p className="font-medium">{new Date(selectedInvoice.date).toLocaleDateString('nl-NL')}</p>
+                      </div>
+                      <div className="space-y-1 text-right">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase">Vervaldatum</p>
+                         <p className="font-medium text-red-600">{new Date(selectedInvoice.dueDate).toLocaleDateString('nl-NL')}</p>
+                      </div>
+                   </div>
+
+                   <table className="w-full text-left text-sm">
+                      <thead className="text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100">
+                         <tr>
+                            <th className="pb-2">Omschrijving</th>
+                            <th className="pb-2 text-right">Aantal</th>
+                            <th className="pb-2 text-right">Tarief</th>
+                            <th className="pb-2 text-right">Totaal</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                         {selectedInvoice.lines.map((line, idx) => (
+                           <tr key={idx}>
+                              <td className="py-3 text-slate-700">{line.description}</td>
+                              <td className="py-3 text-right">{line.quantity}</td>
+                              <td className="py-3 text-right">€{line.rate.toLocaleString('nl-NL')}</td>
+                              <td className="py-3 text-right font-bold">€{(line.quantity * line.rate).toLocaleString('nl-NL')}</td>
+                           </tr>
+                         ))}
+                      </tbody>
+                   </table>
+
+                   <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+                      <div className="flex justify-between text-slate-500 text-xs">
+                         <span>Subtotaal (Excl. BTW)</span>
+                         <span>€{selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-500 text-xs">
+                         <span>BTW (21%)</span>
+                         <span>€{(selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0) * 0.21).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-900 font-bold border-t border-slate-200 pt-2">
+                         <span>Totaalbedrag</span>
+                         <span>€{(selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0) * 1.21).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                   </div>
+
+                   <div className="space-y-4">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Logboek & Historie</label>
+                      <div className="space-y-2">
+                         {selectedInvoice.logs.map((log, idx) => (
+                           <div key={idx} className="flex gap-3 text-xs p-2 bg-slate-50 rounded-lg">
+                              <span className="font-mono text-slate-400">{new Date(log.date).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span className="font-bold text-slate-700">{log.action}</span>
+                              <span className="text-slate-400 ml-auto">{log.actor}</span>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+
+                <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                   <button onClick={() => setSelectedInvoice(null)} className="px-6 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-white transition-all cursor-pointer">Sluiten</button>
+                   {selectedInvoice.status === 'Concept_Verstuurd' && (
+                      <div className="flex-1 flex gap-3">
+                        <button 
+                          onClick={() => handleRequestChanges(selectedInvoice.id)}
+                          className="flex-1 px-6 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all cursor-pointer"
+                        >
+                          Herziening vragen
+                        </button>
+                        <button 
+                          onClick={() => handleApproveInvoice(selectedInvoice.id)}
+                          className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer border-none"
+                        >
+                          Accorderen
+                        </button>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* ── DEELOPDRACHTEN / WERKORDERS (ONLY RAAMDORSSIERS) ── */}
           {activeTab === 'deelopdrachten' && isRaamopdracht && (
