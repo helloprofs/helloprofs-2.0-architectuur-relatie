@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   User, 
   Shield, 
@@ -77,10 +77,32 @@ const phases: Phase[] = [
 
 
 export default function VendorProfilePage() {
-  const [activeTab, setActiveTab] = useState<'settings' | 'legal'>('legal');
+  const [activeTab, setActiveTab] = useState<'settings' | 'legal'>('settings');
   const [currentStep, setCurrentStep] = useState(1);
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem('vendor_assessment_answers');
+    const savedStep = localStorage.getItem('vendor_assessment_step');
+    const savedShowResult = localStorage.getItem('vendor_assessment_show_result');
+
+    if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
+    if (savedStep) setCurrentStep(parseInt(savedStep));
+    if (savedShowResult) setShowResult(savedShowResult === 'true');
+    
+    setIsLoaded(true);
+  }, []);
+
+  // Save state to localStorage on changes
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('vendor_assessment_answers', JSON.stringify(answers));
+    localStorage.setItem('vendor_assessment_step', currentStep.toString());
+    localStorage.setItem('vendor_assessment_show_result', showResult.toString());
+  }, [answers, currentStep, showResult, isLoaded]);
 
   const handleAnswer = (questionId: string, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -624,10 +646,17 @@ export default function VendorProfilePage() {
 
               <div className="pt-8 flex gap-4 w-full">
                   <button 
-                   onClick={() => { setShowResult(false); setCurrentStep(1); }}
+                   onClick={() => { 
+                     setShowResult(false); 
+                     setCurrentStep(1); 
+                     setAnswers({});
+                     localStorage.removeItem('vendor_assessment_answers');
+                     localStorage.removeItem('vendor_assessment_step');
+                     localStorage.removeItem('vendor_assessment_show_result');
+                   }}
                    className="flex-1 py-3 px-6 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
                   >
-                     Antwoorden aanpassen
+                     Opnieuw invullen
                   </button>
                   <button className="flex-1 py-3 px-6 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
                      Rapport Downloaden
@@ -865,20 +894,25 @@ function Question({
        </div>
 
        {explanation && (
-         <div className="space-y-2">
+         <div className="space-y-3">
             <button 
               onClick={() => setShowExplanation(!showExplanation)}
-              className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors uppercase tracking-widest px-1"
+              className="flex items-center gap-2 text-[10px] font-black text-indigo-600 hover:text-indigo-700 transition-all uppercase tracking-[0.15em] px-1 group/btn cursor-pointer"
             >
-              <HelpCircle size={14} />
+              <div className="p-1 rounded-md bg-indigo-50 group-hover/btn:bg-indigo-100 transition-colors">
+                <HelpCircle size={12} />
+              </div>
               {showExplanation ? "Verberg Uitleg" : "Toon Uitleg"}
-              {showExplanation ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {showExplanation ? <ChevronUp size={12} className="opacity-50" /> : <ChevronDown size={12} className="opacity-50" />}
             </button>
             
             {showExplanation && (
-              <div className="p-6 bg-rose-50 border border-rose-100 rounded-2xl animate-in slide-in-from-top-2 duration-300">
-                <p className="text-xs font-bold text-rose-900 uppercase tracking-widest mb-2">Uitleg</p>
-                <p className="text-xs leading-relaxed text-slate-700 font-medium">
+              <div className="p-5 bg-slate-50 border border-slate-100 border-l-4 border-l-indigo-500 rounded-r-2xl animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-2 mb-2">
+                   <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toelichting & Achtergrond</p>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
                   {explanation}
                 </p>
               </div>
