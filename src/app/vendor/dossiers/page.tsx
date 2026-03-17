@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { mockDossiers, mockPurchaseOrders, mockRelations, mockProjects, DossierStatus } from "@/lib/mock-data";
-import { Search, Filter, AlertCircle, History, FolderKanban, ArrowRight } from "lucide-react";
+import { useDynamicState } from "@/hooks/use-dynamic-state";
+import { mockRelations, DossierStatus } from "@/lib/mock-data";
+import { Search, Filter, History, FolderKanban, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 function DossierStatusBadge({ status }: { status: DossierStatus }) {
@@ -25,16 +26,19 @@ function DossierStatusBadge({ status }: { status: DossierStatus }) {
 
 export default function VendorDossiersPage() {
   const router = useRouter();
+  const { projects, purchaseOrders, dossiers, isLoaded } = useDynamicState();
+
+  if (!isLoaded) return <div className="p-8 text-center text-slate-500">Laden...</div>;
 
   const getPurchaseOrder = (id: string) =>
-    mockPurchaseOrders.find(po => po.id === id);
+    purchaseOrders.find(po => po.id === id);
 
   const getPurchaseOrderType = (id: string) =>
     getPurchaseOrder(id)?.type || '—';
 
   const getProjectName = (purchaseOrderId: string) => {
     const po = getPurchaseOrder(purchaseOrderId);
-    return po ? mockProjects.find(p => p.id === po.projectId)?.name || po.projectId : '—';
+    return po ? projects.find(p => p.id === po.projectId)?.name || po.projectId : '—';
   };
 
   const getRelationName = (id: string) =>
@@ -83,7 +87,7 @@ export default function VendorDossiersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {mockDossiers.filter(d => d.relationId === 'R-001').map(dossier => (
+              {dossiers.filter(d => d.relationId === 'R-001').map(dossier => (
                 <tr
                   key={dossier.id}
                   onClick={() => router.push(`/vendor/dossiers/${dossier.id}`)}

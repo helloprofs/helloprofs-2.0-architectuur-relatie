@@ -1,7 +1,11 @@
-import { mockPurchaseOrders, mockDossiers, mockProjects, mockRelations, DossierStatus } from "@/lib/mock-data";
+"use client";
+
+import { useDynamicState } from "@/hooks/use-dynamic-state";
+import { mockRelations, DossierStatus } from "@/lib/mock-data";
 import Link from "next/link";
 import { ArrowLeft, FileText, MapPin, Calendar, Euro, History, ArrowRight } from "lucide-react";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 function DossierStatusBadge({ status }: { status: DossierStatus }) {
   const styles: Record<DossierStatus, string> = {
@@ -20,13 +24,17 @@ function DossierStatusBadge({ status }: { status: DossierStatus }) {
   );
 }
 
-export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const po = mockPurchaseOrders.find(p => p.id === id);
-  if (!po) return notFound();
+export default function PurchaseOrderDetailPage() {
+  const { id } = useParams() as { id: string };
+  const { projects, purchaseOrders, dossiers, isLoaded } = useDynamicState();
 
-  const project = mockProjects.find(p => p.id === po.projectId);
-  const dossiers = mockDossiers.filter(d => d.purchaseOrderId === po.id);
+  if (!isLoaded) return <div className="p-8 text-center text-slate-500">Laden...</div>;
+
+  const po = purchaseOrders.find(p => p.id === id);
+  if (!po) return <div className="p-8 text-center">Opdracht niet gevonden</div>;
+
+  const project = projects.find(p => p.id === po.projectId);
+  const poDossiers = dossiers.filter(d => d.purchaseOrderId === po.id);
   const getRelationName = (rid: string) => mockRelations.find(r => r.id === rid)?.name || rid;
 
   return (
@@ -80,7 +88,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           )}
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <FileText size={14} className="text-slate-400" />
-            <strong className="text-slate-700">{dossiers.length}</strong> dossiers
+            <strong className="text-slate-700">{poDossiers.length}</strong> dossiers
           </div>
         </div>
       </div>
@@ -92,7 +100,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           <p className="text-xs text-slate-500 mt-0.5">Elke aannemer die deze opdracht heeft ontvangen krijgt een eigen dossier.</p>
         </div>
 
-        {dossiers.length === 0 ? (
+        {poDossiers.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <p className="text-sm text-slate-400 italic">Nog geen dossiers voor deze opdracht</p>
           </div>
@@ -108,7 +116,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {dossiers.map(dossier => (
+              {poDossiers.map(dossier => (
                 <tr 
                   key={dossier.id} 
                   className="hover:bg-slate-50 transition-colors cursor-pointer group"

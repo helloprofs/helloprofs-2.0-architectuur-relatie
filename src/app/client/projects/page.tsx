@@ -1,22 +1,37 @@
-import { mockProjects, mockPurchaseOrders } from "@/lib/mock-data";
-import { FolderKanban, MapPin, Calendar, ArrowRight } from "lucide-react";
+"use client";
+
+import { useDynamicState } from "@/hooks/use-dynamic-state";
+import { FolderKanban, MapPin, Calendar, ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 
 export default function ProjectsPage() {
+  const { projects, purchaseOrders, isLoaded } = useDynamicState();
+
+  if (!isLoaded) return <div className="p-8 text-center text-slate-500">Laden...</div>;
+
   const getPurchaseOrdersForProject = (projectId: string) =>
-    mockPurchaseOrders.filter(po => po.projectId === projectId);
+    purchaseOrders.filter(po => po.projectId === projectId);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-slate-800">Projecten</h2>
-        <p className="text-slate-500 mt-1">Alle actieve en afgeronde projecten binnen uw organisatie.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Projecten</h2>
+          <p className="text-slate-500 mt-1">Alle actieve en afgeronde projecten binnen uw organisatie.</p>
+        </div>
+        <Link 
+          href="/client/projects/new"
+          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+        >
+          <Plus size={16} />
+          <span>Nieuw Project</span>
+        </Link>
       </div>
 
       {/* Project Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {mockProjects.map((project) => {
+        {projects.map((project) => {
           const purchaseOrders = getPurchaseOrdersForProject(project.id);
           return (
             <div key={project.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">

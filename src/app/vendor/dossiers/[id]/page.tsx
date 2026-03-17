@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useDynamicState } from "@/hooks/use-dynamic-state";
 import {
-  mockDossiers, mockPurchaseOrders, mockRelations, mockProjects,
+  mockRelations,
   mockDossierEvents, mockDossierAttachments, mockDossierMessages, mockDeelopdrachten,
   mockInvoices,
   DossierStatus, EventType, Invoice, InvoiceLine
@@ -54,9 +55,10 @@ export default function VendorDossierDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
+  const { projects, purchaseOrders, dossiers, isLoaded } = useDynamicState();
 
-  const dossier = mockDossiers.find(d => d.id === id);
-  const po = mockPurchaseOrders.find(p => p.id === dossier?.purchaseOrderId);
+  const dossier = dossiers.find(d => d.id === id);
+  const po = purchaseOrders.find(p => p.id === dossier?.purchaseOrderId);
   const isRaamopdracht = po?.type === 'Raamopdracht';
 
   const [activeTab, setActiveTab] = useState(tabParam || (isRaamopdracht ? 'deelopdrachten' : 'tijdlijn'));
@@ -242,6 +244,8 @@ export default function VendorDossierDetailPage() {
     setChatMessage('');
   };
 
+  if (!isLoaded) return <div className="p-8 text-center text-slate-500">Laden...</div>;
+
   if (!dossier) return (
     <div className="text-center py-20">
       <p className="text-slate-500">Dossier niet gevonden.</p>
@@ -250,7 +254,7 @@ export default function VendorDossierDetailPage() {
   );
 
   const relation = mockRelations.find(r => r.id === dossier.relationId);
-  const project = po ? mockProjects.find(p => p.id === po.projectId) : null;
+  const project = po ? projects.find(p => p.id === po.projectId) : null;
   const events = mockDossierEvents.filter(e => e.dossierId === id).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const attachments = mockDossierAttachments.filter(a => a.dossierId === id);
   const messages = messagesList;

@@ -5,23 +5,27 @@ import { mockPurchaseOrders, mockDossiers, mockProjects } from "@/lib/mock-data"
 import Link from "next/link";
 import { Plus, Search, ArrowRight, Files, X, FilterX, Filter } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useDynamicState } from "@/hooks/use-dynamic-state";
 
 function PurchaseOrdersContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { projects, purchaseOrders, dossiers, isLoaded } = useDynamicState();
+
+  if (!isLoaded) return <div className="p-8 text-center text-slate-500">Laden...</div>;
 
   const projectIdFilter = searchParams.get("projectId");
-  const activeProject = projectIdFilter ? mockProjects.find(p => p.id === projectIdFilter) : null;
+  const activeProject = projectIdFilter ? projects.find(p => p.id === projectIdFilter) : null;
 
   const getProjectName = (id: string) =>
-    mockProjects.find(p => p.id === id)?.name || id;
+    projects.find(p => p.id === id)?.name || id;
 
   const getDossierCount = (poId: string) =>
-    mockDossiers.filter(d => d.purchaseOrderId === poId).length;
+    dossiers.filter(d => d.purchaseOrderId === poId).length;
 
   const filteredPOs = projectIdFilter
-    ? mockPurchaseOrders.filter(po => po.projectId === projectIdFilter)
-    : mockPurchaseOrders;
+    ? purchaseOrders.filter(po => po.projectId === projectIdFilter)
+    : purchaseOrders;
 
   return (
     <div className="space-y-6">
@@ -31,10 +35,13 @@ function PurchaseOrdersContent() {
           <h2 className="text-2xl font-bold text-slate-800">Inkoopopdrachten</h2>
           <p className="text-slate-500 mt-1">Eén opdracht kan meerdere dossiers opleveren.</p>
         </div>
-        <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
+        <Link 
+          href="/client/purchase-orders/new"
+          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+        >
           <Plus size={16} />
           <span>Nieuwe Inkoopopdracht</span>
-        </button>
+        </Link>
       </div>
 
       {/* Active Filter Badge */}
