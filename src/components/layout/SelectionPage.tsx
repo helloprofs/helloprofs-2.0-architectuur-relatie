@@ -5,68 +5,58 @@ import { UserCircle, Building2, ArrowRight } from "lucide-react";
 
 export function SelectionPage() {
   return (
-    <div className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full"></div>
-
+    <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center p-6 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px]">
       <div className="z-10 w-full max-w-4xl text-center">
-        <div className="mb-12">
-          <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/20">
-            <span className="text-white font-bold text-2xl">h</span>
+        <div className="mb-16">
+          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <span className="text-white font-bold text-xl">h</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-            Welkom bij <span className="text-blue-500">helloprofs.nl</span>
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+            Welkom bij <span className="text-blue-600">helloprofs.nl</span>
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
+          <p className="text-slate-600 text-lg max-w-xl mx-auto">
             Kies uw portaal om direct aan de slag te gaan met uw projecten en samenwerkingen.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mt-12">
+        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Client Card */}
           <Link 
             href="/client/dashboard"
-            className="group relative p-8 rounded-3xl bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-sm"
+            className="group p-8 rounded-2xl bg-white border border-slate-200 hover:border-blue-500/50 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 text-left"
           >
-            <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ArrowRight className="text-blue-500" />
+            <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors">
+              <UserCircle size={24} className="text-blue-600" />
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-              <UserCircle size={32} className="text-blue-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-3 text-left">Ik ben Opdrachtgever</h3>
-            <p className="text-slate-400 text-left leading-relaxed">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Ik ben Opdrachtgever</h3>
+            <p className="text-slate-500 text-sm leading-relaxed mb-6">
               Beheer uw projecten, overzie samenwerkingen en bekijk rapportages van uw ingehuurde professionals.
             </p>
-            <div className="mt-8 flex items-center text-blue-400 font-semibold text-sm group-hover:gap-2 transition-all">
-              Naar Client Portaal <ArrowRight size={16} className="ml-1" />
+            <div className="flex items-center text-blue-600 font-medium text-sm">
+              Naar Client Portaal <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           {/* Vendor Card */}
           <Link 
             href="/vendor/dashboard"
-            className="group relative p-8 rounded-3xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10 backdrop-blur-sm"
+            className="group p-8 rounded-2xl bg-white border border-slate-200 hover:border-slate-400 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 text-left"
           >
-            <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ArrowRight className="text-indigo-500" />
+            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-6 group-hover:bg-slate-200 transition-colors">
+              <Building2 size={24} className="text-slate-700" />
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-              <Building2 size={32} className="text-indigo-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-3 text-left">Ik ben Opdrachtnemer</h3>
-            <p className="text-slate-400 text-left leading-relaxed">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Ik ben Opdrachtnemer</h3>
+            <p className="text-slate-500 text-sm leading-relaxed mb-6">
               Bekijk openstaande opdrachten, beheer uw beschikbaarheid en handel facturatie direct af.
             </p>
-            <div className="mt-8 flex items-center text-indigo-400 font-semibold text-sm group-hover:gap-2 transition-all">
-              Naar Vendor Portaal <ArrowRight size={16} className="ml-1" />
+            <div className="flex items-center text-slate-700 font-medium text-sm">
+              Naar Vendor Portaal <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
         </div>
 
-        <p className="mt-16 text-slate-500 text-sm">
-          &copy; 2024 helloprofs.nl - De nieuwe standaard in professionele samenwerking.
+        <p className="mt-20 text-slate-400 text-xs font-medium uppercase tracking-widest">
+          &copy; 2024 helloprofs.nl
         </p>
       </div>
     </div>
