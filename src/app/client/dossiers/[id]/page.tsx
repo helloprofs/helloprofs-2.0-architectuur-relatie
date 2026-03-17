@@ -66,6 +66,8 @@ export default function DossierDetailPage() {
   const [localEvents, setLocalEvents] = useState(mockDossierEvents.filter(e => e.dossierId === id));
   const [localInvoices, setLocalInvoices] = useState<Invoice[]>(mockInvoices.filter(i => (i as Invoice).dossierId === id));
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isRequestingChanges, setIsRequestingChanges] = useState(false);
+  const [changeReason, setChangeReason] = useState("");
 
 
   // State for Deelopdracht Drawer
@@ -153,7 +155,7 @@ export default function DossierDetailPage() {
     const newEvent = {
         id: `ev-${Date.now()}`,
         dossierId: id!,
-        type: 'inkoopopdracht_geaccepteerd' as any, // Using an existing icon type for now
+        type: 'inkoopopdracht_geaccepteerd' as any, 
         description: `Factuur ${invoice.invoiceNumber} goedgekeurd door opdrachtgever`,
         date: new Date().toISOString(),
         actor: 'Tim de Ruiter',
@@ -167,15 +169,21 @@ export default function DossierDetailPage() {
     const invoice = localInvoices.find(i => i.id === invoiceId);
     if (!invoice) return;
 
-    const reason = prompt("Geef een reden op voor het vragen van aanpassingen:");
-    if (!reason) return;
+    if (!isRequestingChanges) {
+      setIsRequestingChanges(true);
+      return;
+    }
+
+    if (!changeReason.trim()) {
+      return;
+    }
 
     setLocalInvoices(prev => prev.map(inv => 
       inv.id === invoiceId 
         ? { 
             ...inv, 
             status: 'Herziening_Nodig', 
-            logs: [...inv.logs, { date: new Date().toISOString(), action: `Herziening nodig: ${reason}`, actor: 'Tim de Ruiter' }] 
+            logs: [...inv.logs, { date: new Date().toISOString(), action: `Aanpassing gevraagd: ${changeReason}`, actor: 'Tim de Ruiter' }] 
           }
         : inv
     ));
@@ -184,13 +192,15 @@ export default function DossierDetailPage() {
         id: `ev-${Date.now()}`,
         dossierId: id!,
         type: 'inkoopopdracht_geweigerd' as any, 
-        description: `Aanpassingen gevraagd voor factuur ${invoice.invoiceNumber}: ${reason}`,
+        description: `Aanpassingen gevraagd voor factuur ${invoice.invoiceNumber}: ${changeReason}`,
         date: new Date().toISOString(),
         actor: 'Tim de Ruiter',
         linkedSection: 'factuur'
     };
     setLocalEvents([newEvent, ...localEvents]);
     setSelectedInvoice(null);
+    setIsRequestingChanges(false);
+    setChangeReason("");
   };
 
 
@@ -385,7 +395,12 @@ export default function DossierDetailPage() {
                       <div key={invoice.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                         <div className="p-5 flex items-start justify-between">
                           <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-lg ${invoice.status === 'Betaald' ? 'bg-emerald-50 text-emerald-600' : invoice.status === 'Concept_Verstuurd' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
+                            <div className={`p-3 rounded-lg ${
+                              invoice.status === 'Betaald' ? 'bg-emerald-50 text-emerald-600' : 
+                              invoice.status === 'Concept_Verstuurd' ? 'bg-amber-50 text-amber-600' : 
+                              invoice.status === 'Herziening_Nodig' ? 'bg-red-50 text-red-600' :
+                              'bg-indigo-50 text-indigo-600'
+                            }`}>
                               <Receipt size={24} />
                             </div>
                             <div>
@@ -397,7 +412,10 @@ export default function DossierDetailPage() {
                                       invoice.status === 'Herziening_Nodig' ? 'bg-red-100 text-red-700' :
                                         'bg-indigo-100 text-indigo-700'
                                   }`}>
-                                    {invoice.status.replace('_', ' ')}
+                                    {invoice.status === 'Factuur_Verstuurd' ? 'Factuur ontvangen' :
+                                     invoice.status === 'Concept_Verstuurd' ? 'Controle gevraagd' :
+                                      invoice.status === 'Herziening_Nodig' ? 'Aanpassing gevraagd' :
+                                        invoice.status.replace('_', ' ')}
                                   </span>
                                 </div>
                                 <h4 className="font-bold text-slate-800">{invoice.description}</h4>
@@ -445,96 +463,149 @@ export default function DossierDetailPage() {
           {/* ── INVOICE REVIEW MODAL (CLIENT) ── */}
           {selectedInvoice && (
             <>
-              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200]" onClick={() => setSelectedInvoice(null)} />
+              <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200]" onClick={() => { setSelectedInvoice(null); setIsRequestingChanges(false); setChangeReason(""); }} />
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl shadow-2xl z-[201] overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-blue-50/50">
                   <div>
-                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{selectedInvoice.isConcept ? 'Concept Controle' : 'Factuur Details'}</span>
+                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{selectedInvoice.status === 'Concept_Verstuurd' ? 'Controle gevraagd' : 'Factuur Details'}</span>
                     <h3 className="text-xl font-bold text-slate-900">{selectedInvoice.id} - {selectedInvoice.description}</h3>
                   </div>
-                  <button onClick={() => setSelectedInvoice(null)} className="text-slate-400 hover:text-slate-600"><XCircle size={24} /></button>
+                  <button onClick={() => { setSelectedInvoice(null); setIsRequestingChanges(false); setChangeReason(""); }} className="text-slate-400 hover:text-slate-600 cursor-pointer"><XCircle size={24} /></button>
                 </div>
                 
                 <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                   <div className="grid grid-cols-2 gap-8 text-sm">
-                      <div className="space-y-1">
-                         <p className="text-[10px] font-bold text-slate-400 uppercase">Factuurdatum</p>
-                         <p className="font-medium">{new Date(selectedInvoice.date).toLocaleDateString('nl-NL')}</p>
-                      </div>
-                      <div className="space-y-1 text-right">
-                         <p className="text-[10px] font-bold text-slate-400 uppercase">Vervaldatum</p>
-                         <p className="font-medium text-red-600">{new Date(selectedInvoice.dueDate).toLocaleDateString('nl-NL')}</p>
-                      </div>
-                   </div>
-
-                   <table className="w-full text-left text-sm">
-                      <thead className="text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100">
-                         <tr>
-                            <th className="pb-2">Omschrijving</th>
-                            <th className="pb-2 text-right">Aantal</th>
-                            <th className="pb-2 text-right">Tarief</th>
-                            <th className="pb-2 text-right">Totaal</th>
-                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                         {selectedInvoice.lines.map((line, idx) => (
-                           <tr key={idx}>
-                              <td className="py-3 text-slate-700">{line.description}</td>
-                              <td className="py-3 text-right">{line.quantity}</td>
-                              <td className="py-3 text-right">€{line.rate.toLocaleString('nl-NL')}</td>
-                              <td className="py-3 text-right font-bold">€{(line.quantity * line.rate).toLocaleString('nl-NL')}</td>
-                           </tr>
-                         ))}
-                      </tbody>
-                   </table>
-
-                   <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                      <div className="flex justify-between text-slate-500 text-xs">
-                         <span>Subtotaal (Excl. BTW)</span>
-                         <span>€{selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between text-slate-500 text-xs">
-                         <span>BTW (21%)</span>
-                         <span>€{(selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0) * 0.21).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between text-slate-900 font-bold border-t border-slate-200 pt-2">
-                         <span>Totaalbedrag</span>
-                         <span>€{(selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0) * 1.21).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                   </div>
-
-                   <div className="space-y-4">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Logboek & Historie</label>
-                      <div className="space-y-2">
-                         {selectedInvoice.logs.map((log, idx) => (
-                           <div key={idx} className="flex gap-3 text-xs p-2 bg-slate-50 rounded-lg">
-                              <span className="font-mono text-slate-400">{new Date(log.date).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</span>
-                              <span className="font-bold text-slate-700">{log.action}</span>
-                              <span className="text-slate-400 ml-auto">{log.actor}</span>
+                   {isRequestingChanges ? (
+                     <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
+                       <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
+                         <h4 className="text-sm font-bold text-red-900 mb-1">Aanpassing vragen</h4>
+                         <p className="text-xs text-red-700/80">Geef hieronder aan wat er gewijzigd moet worden aan deze factuur.</p>
+                       </div>
+                       <div className="space-y-1.5">
+                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reden voor aanpassing</label>
+                         <textarea 
+                           autoFocus
+                           rows={6}
+                           placeholder="Bijv. Het uurtarief wijkt af van de gemaakte afspraken..."
+                           className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all"
+                           value={changeReason}
+                           onChange={(e) => setChangeReason(e.target.value)}
+                         />
+                       </div>
+                     </div>
+                   ) : (
+                     <>
+                        <div className="grid grid-cols-2 gap-8 text-sm">
+                           <div className="space-y-1">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase">Factuurdatum</p>
+                              <p className="font-medium">{new Date(selectedInvoice.date).toLocaleDateString('nl-NL')}</p>
                            </div>
-                         ))}
-                      </div>
-                   </div>
+                           <div className="space-y-1 text-right">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase">Huidige Status</p>
+                              <p className={`text-xs font-bold ${
+                                selectedInvoice.status === 'Concept_Verstuurd' ? 'text-amber-600' :
+                                selectedInvoice.status === 'Herziening_Nodig' ? 'text-red-600' :
+                                'text-indigo-600'
+                              }`}>
+                                {selectedInvoice.status === 'Factuur_Verstuurd' ? 'Factuur ontvangen' :
+                                 selectedInvoice.status === 'Concept_Verstuurd' ? 'Controle gevraagd' :
+                                 selectedInvoice.status === 'Herziening_Nodig' ? 'Aanpassing gevraagd' :
+                                 selectedInvoice.status.replace('_', ' ')}
+                              </p>
+                           </div>
+                        </div>
+
+                        <table className="w-full text-left text-sm">
+                           <thead className="text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100">
+                              <tr>
+                                 <th className="pb-2">Omschrijving</th>
+                                 <th className="pb-2 text-right">Aantal</th>
+                                 <th className="pb-2 text-right">Tarief</th>
+                                 <th className="pb-2 text-right">Totaal</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-slate-50">
+                              {selectedInvoice.lines.map((line, idx) => (
+                                <tr key={idx}>
+                                   <td className="py-3 text-slate-700">{line.description}</td>
+                                   <td className="py-3 text-right">{line.quantity}</td>
+                                   <td className="py-3 text-right">€{line.rate.toLocaleString('nl-NL')}</td>
+                                   <td className="py-3 text-right font-bold">€{(line.quantity * line.rate).toLocaleString('nl-NL')}</td>
+                                </tr>
+                              ))}
+                           </tbody>
+                        </table>
+
+                        <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+                           <div className="flex justify-between text-slate-500 text-xs">
+                              <span>Subtotaal (Excl. BTW)</span>
+                              <span>€{selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+                           </div>
+                           <div className="flex justify-between text-slate-500 text-xs">
+                              <span>BTW (21%)</span>
+                              <span>€{(selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0) * 0.21).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+                           </div>
+                           <div className="flex justify-between text-slate-900 font-bold border-t border-slate-200 pt-2">
+                              <span>Totaalbedrag</span>
+                              <span>€{(selectedInvoice.lines.reduce((a, b: any) => a + (b.quantity * b.rate), 0) * 1.21).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Logboek & Historie</label>
+                           <div className="space-y-2">
+                              {selectedInvoice.logs.map((log, idx) => (
+                                <div key={idx} className="flex gap-3 text-xs p-2 bg-slate-50 rounded-lg">
+                                   <span className="font-mono text-slate-400">{new Date(log.date).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</span>
+                                   <span className="font-bold text-slate-700">{log.action}</span>
+                                   <span className="text-slate-400 ml-auto">{log.actor}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+                     </>
+                   )}
                 </div>
 
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                   <button onClick={() => setSelectedInvoice(null)} className="px-6 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-white transition-all cursor-pointer">Sluiten</button>
-                   {selectedInvoice.status === 'Concept_Verstuurd' && (
-                      <div className="flex-1 flex gap-3">
-                        <button 
-                          onClick={() => handleRequestChanges(selectedInvoice.id)}
-                          className="flex-1 px-6 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all cursor-pointer"
-                        >
-                          Herziening vragen
-                        </button>
-                        <button 
-                          onClick={() => handleApproveInvoice(selectedInvoice.id)}
-                          className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer border-none"
-                        >
-                          Accorderen
-                        </button>
-                      </div>
-                    )}
+                   {isRequestingChanges ? (
+                     <>
+                       <button 
+                         onClick={() => { setIsRequestingChanges(false); setChangeReason(""); }}
+                         className="px-6 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-white transition-all cursor-pointer"
+                       >
+                         Annuleren
+                       </button>
+                       <button 
+                         onClick={() => handleRequestChanges(selectedInvoice.id)}
+                         disabled={!changeReason.trim()}
+                         className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-all cursor-pointer border-none ${
+                           !changeReason.trim() ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none' : 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20'
+                         }`}
+                       >
+                         Bevestigen
+                       </button>
+                     </>
+                   ) : (
+                     <>
+                       <button onClick={() => { setSelectedInvoice(null); setIsRequestingChanges(false); setChangeReason(""); }} className="px-6 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-white transition-all cursor-pointer">Sluiten</button>
+                       {selectedInvoice.status === 'Concept_Verstuurd' && (
+                          <div className="flex-1 flex gap-3">
+                            <button 
+                              onClick={() => handleRequestChanges(selectedInvoice.id)}
+                              className="flex-1 px-6 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all cursor-pointer"
+                            >
+                              Aanpassing vragen
+                            </button>
+                            <button 
+                              onClick={() => handleApproveInvoice(selectedInvoice.id)}
+                              className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer border-none"
+                            >
+                              Accorderen
+                            </button>
+                          </div>
+                        )}
+                     </>
+                   )}
                 </div>
               </div>
             </>

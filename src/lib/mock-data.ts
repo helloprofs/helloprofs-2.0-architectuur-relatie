@@ -376,7 +376,7 @@ export const mockInvoices: Invoice[] = [
     relationId: 'R-002',
     date: '2025-03-11',
     dueDate: '2025-04-10',
-    status: 'Herziening_Nodig',
+    status: 'Concept_Verstuurd',
     description: 'Reparatie intercom systeem',
     isConcept: true,
     invoiceNumber: '2025-003',
