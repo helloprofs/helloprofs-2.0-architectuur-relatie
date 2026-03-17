@@ -19,9 +19,11 @@ function VendorPurchaseOrdersContent() {
   const getDossierCount = (poId: string) =>
     mockDossiers.filter(d => d.purchaseOrderId === poId).length;
 
-  const filteredPOs = projectIdFilter
+  const filteredPOs = (projectIdFilter
     ? mockPurchaseOrders.filter(po => po.projectId === projectIdFilter)
-    : mockPurchaseOrders;
+    : mockPurchaseOrders).filter(po =>
+      mockDossiers.some(d => d.purchaseOrderId === po.id && d.relationId === 'R-001')
+    );
 
   return (
     <div className="space-y-6">
@@ -96,6 +98,7 @@ function VendorPurchaseOrdersContent() {
               ) : (
                 filteredPOs.map(po => {
                   const dossierCount = getDossierCount(po.id);
+                  const dossier = mockDossiers.find(d => d.purchaseOrderId === po.id && d.relationId === 'R-001');
                   return (
                     <tr key={po.id} className="hover:bg-slate-50 transition-colors group">
                       <td className="px-6 py-4">
@@ -129,10 +132,10 @@ function VendorPurchaseOrdersContent() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <Link
-                          href={`/vendor/purchase-orders/${po.id}`}
+                          href={dossier ? `/vendor/dossiers/${dossier.id}` : '#'}
                           className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                         >
-                          Details <ArrowRight size={13} />
+                          Bekijk Dossier <ArrowRight size={13} />
                         </Link>
                       </td>
                     </tr>

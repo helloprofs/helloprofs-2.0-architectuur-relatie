@@ -446,17 +446,6 @@ export default function DossierDetailPage() {
                 </div>
               )}
 
-               <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 flex gap-4">
-                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                   <Receipt size={20} className="text-blue-600" />
-                 </div>
-                 <div>
-                   <h4 className="text-sm font-bold text-blue-900">Nieuw: Directe facturatie</h4>
-                   <p className="text-xs text-blue-800/80 leading-relaxed mt-1">
-                     In deze opzet kan de opdrachtnemer direct factureren. Een voorafgaande werkorder is niet langer verplicht, wat de administratieve last verkort. Conceptfacturen kunt u hierboven eerst controleren voordat ze definitief worden.
-                   </p>
-                 </div>
-               </div>
             </div>
           )}
 
@@ -476,10 +465,7 @@ export default function DossierDetailPage() {
                 <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
                    {isRequestingChanges ? (
                      <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                       <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
-                         <h4 className="text-sm font-bold text-red-900 mb-1">Aanpassing vragen</h4>
-                         <p className="text-xs text-red-700/80">Geef hieronder aan wat er gewijzigd moet worden aan deze factuur.</p>
-                       </div>
+
                        <div className="space-y-1.5">
                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reden voor aanpassing</label>
                          <textarea 
@@ -579,7 +565,7 @@ export default function DossierDetailPage() {
                          onClick={() => handleRequestChanges(selectedInvoice.id)}
                          disabled={!changeReason.trim()}
                          className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-all cursor-pointer border-none ${
-                           !changeReason.trim() ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none' : 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20'
+                           !changeReason.trim() ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
                          }`}
                        >
                          Bevestigen

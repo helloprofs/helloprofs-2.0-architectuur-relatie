@@ -180,7 +180,7 @@ export default function VendorReportingPage() {
                         <p className="text-sm font-medium text-slate-700">{relation?.name}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm font-bold text-slate-900">€{i.amount.toLocaleString()}</p>
+                        <p className="text-sm font-bold text-slate-900">€{i.lines.reduce((sum, line) => sum + (line.quantity * line.rate), 0).toLocaleString('nl-NL')}</p>
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-xs text-slate-500 font-medium">{new Date(i.dueDate).toLocaleDateString('nl-NL')}</p>
@@ -221,12 +221,13 @@ function DossierStatusBadge({ status }: { status: DossierStatus }) {
 
 function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
   const map: Record<InvoiceStatus, { label: string; cls: string }> = {
-    'In_Afwachting': { label: 'Verstuurd', cls: 'bg-slate-100 text-slate-600' },
-    'Geaccepteerd': { label: 'Goedgekeurd', cls: 'bg-indigo-100 text-indigo-700' },
+    'Factuur_Aangemaakt': { label: 'Aangemaakt', cls: 'bg-slate-100 text-slate-600' },
+    'Concept_Verstuurd': { label: 'Concept verstuurd', cls: 'bg-blue-100 text-blue-700' },
+    'Herziening_Nodig': { label: 'Herziening nodig', cls: 'bg-red-100 text-red-700' },
+    'Factuur_Verstuurd': { label: 'Factuur verstuurd', cls: 'bg-indigo-100 text-indigo-700' },
     'Betaald': { label: 'Betaald', cls: 'bg-emerald-100 text-emerald-700' },
-    'Afgewezen': { label: 'Afgewezen', cls: 'bg-red-100 text-red-700' },
-    'Te_Beoordelen': { label: 'In Beoordeling', cls: 'bg-amber-100 text-amber-700' },
+    'Gecrediteerd': { label: 'Gecrediteerd', cls: 'bg-slate-200 text-slate-500' },
   };
-  const { label, cls } = map[status];
+  const { label, cls } = map[status] || { label: status, cls: 'bg-slate-100' };
   return <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${cls}`}>{label}</span>;
 }

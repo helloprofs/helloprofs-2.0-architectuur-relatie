@@ -48,13 +48,7 @@ export default function VendorDossiersPage() {
         <p className="text-slate-500 mt-1">Overzicht van al uw actieve dossiers en dossiers-historie.</p>
       </div>
 
-      {/* Info banner */}
-      <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-        <AlertCircle size={18} className="text-indigo-500 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-indigo-800">
-          De <strong>Dossierstatus</strong> geeft de voortgang van uw specifieke opdracht aan.
-        </p>
-      </div>
+
 
       {/* Table Card */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm text-slate-800">
@@ -82,14 +76,14 @@ export default function VendorDossiersPage() {
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Dossier</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Project</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Inkoopopdracht</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Relatie (Klant)</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Opdrachtgever</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {mockDossiers.map(dossier => (
+              {mockDossiers.filter(d => d.relationId === 'R-001').map(dossier => (
                 <tr
                   key={dossier.id}
                   onClick={() => router.push(`/vendor/dossiers/${dossier.id}`)}
@@ -117,8 +111,8 @@ export default function VendorDossiersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm font-medium text-slate-700">{getRelationName(dossier.relationId)}</p>
-                    <p className="text-xs text-slate-400">{dossier.relationId}</p>
+                    <p className="text-sm font-medium text-slate-700">Helloprofs</p>
+                    <p className="text-xs text-slate-400">Platform</p>
                   </td>
                   <td className="px-6 py-4">
                     <DossierStatusBadge status={dossier.status} />

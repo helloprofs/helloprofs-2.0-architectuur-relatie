@@ -122,7 +122,7 @@ export const mockPurchaseOrders: PurchaseOrder[] = [
     type: 'Raamopdracht',
     dateCreated: '2025-01-10',
     status: 'Verstuurd',
-    invitedRelationIds: ['R-002'] // Electra Fix
+    invitedRelationIds: ['R-001', 'R-002'] // Jan de Bouwer & Electra Fix
   }
 ];
 
@@ -163,6 +163,13 @@ export const mockDossiers: Dossier[] = [
     id: 'D-3003',
     purchaseOrderId: 'PO-2002',
     relationId: 'R-002',
+    status: 'Inkoopopdracht_Verstuurd',
+    historyCount: 1
+  },
+  {
+    id: 'D-3004',
+    purchaseOrderId: 'PO-2002',
+    relationId: 'R-001',
     status: 'Inkoopopdracht_Verstuurd',
     historyCount: 1
   }

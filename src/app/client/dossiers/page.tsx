@@ -48,13 +48,7 @@ export default function DossiersPage() {
         <p className="text-slate-500 mt-1">Alle individuele samenwerkingen voortkomend uit inkoopopdrachten.</p>
       </div>
 
-      {/* Info banner */}
-      <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-lg p-4">
-        <AlertCircle size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-blue-800">
-          Een <strong>Dossierstatus</strong> toont de voortgang van een specifieke samenwerking en staat los van de algemene <strong>Relatiestatus</strong>.
-        </p>
-      </div>
+
 
       {/* Table Card */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
