@@ -30,8 +30,8 @@ export default function ReportingPage() {
 
   // Stats calculation
   const openContracts = mockDossiers.filter(d => d.status === 'Contract_Lopend').length;
-  const pendingInvoices = mockInvoices.filter(i => i.status === 'In_Afwachting' || i.status === 'Te_Beoordelen').length;
-  const invoicesToReview = mockInvoices.filter(i => i.status === 'Te_Beoordelen').length;
+  const pendingInvoices = mockInvoices.filter(i => i.status === 'Factuur_Verstuurd' || i.status === 'Concept_Verstuurd').length;
+  const invoicesToReview = mockInvoices.filter(i => i.status === 'Concept_Verstuurd').length;
   const expiredContracts = mockDossiers.filter(d => d.status === 'Contract_Verlopen').length;
 
   const filteredDossiers = mockDossiers.filter(d => {
@@ -226,7 +226,7 @@ export default function ReportingPage() {
                         <InvoiceStatusBadge status={i.status} />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {i.status === 'Te_Beoordelen' ? (
+                        {i.status === 'Concept_Verstuurd' ? (
                           <button className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all cursor-pointer">
                             Beoordelen
                           </button>
