@@ -36,7 +36,7 @@ export default function RelationsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Relaties</h2>
-          <p className="text-slate-500 mt-1">Beheer alle connecties en samenwerkingen met opdrachtnemers.</p>
+          <p className="text-slate-500 mt-1">Beheer alle connecties en samenwerkingen met relaties.</p>
         </div>
         <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
           <Plus size={16} />

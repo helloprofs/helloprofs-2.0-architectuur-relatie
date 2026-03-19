@@ -79,7 +79,7 @@ export default function DossierDetailPage() {
     title: '',
     description: '',
     startDate: new Date().toISOString().split('T')[0],
-    responsibility: 'Opdrachtnemer (Volledig)',
+    responsibility: 'Relatie (Volledig)',
     expectedResult: '',
     location: ''
   });
@@ -100,7 +100,7 @@ export default function DossierDetailPage() {
       title: '',
       description: '',
       startDate: new Date().toISOString().split('T')[0],
-      responsibility: 'Opdrachtnemer (Volledig)',
+      responsibility: 'Relatie (Volledig)',
       expectedResult: '',
       location: ''
     });
@@ -386,7 +386,7 @@ export default function DossierDetailPage() {
                 <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
                   <Receipt size={32} className="text-slate-300 mx-auto mb-3" />
                   <p className="text-sm font-medium text-slate-600">Nog geen facturen beschikbaar</p>
-                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Zodra de opdrachtnemer een (concept)factuur indient, verschijnt deze hier.</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Zodra de relatie een (concept)factuur indient, verschijnt deze hier.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -771,7 +771,7 @@ export default function DossierDetailPage() {
                 <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl">
                   <FileCheck size={32} className="text-slate-300 mx-auto mb-3" />
                   <p className="text-sm font-medium text-slate-500">Nog geen aanbod ontvangen</p>
-                  <p className="text-xs text-slate-400 mt-1">Het aanbod verschijnt hier zodra de opdrachtnemer reageert.</p>
+                  <p className="text-xs text-slate-400 mt-1">Het aanbod verschijnt hier zodra de relatie reageert.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -787,7 +787,7 @@ export default function DossierDetailPage() {
                     </div>
                   </div>
                   <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Toelichting opdrachtnemer</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Toelichting relatie</p>
                     <p className="text-sm text-slate-700 leading-relaxed">Prijs inclusief materiaalkosten voor kozijnprofiel en afwerking. Exclusief verfwerk.</p>
                   </div>
                   <div className="flex gap-3">
@@ -853,7 +853,7 @@ export default function DossierDetailPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-800">Berichtengeschiedenis</h3>
-                  <p className="text-[11px] text-slate-400 font-medium uppercase tracking-tight">Directe lijn met {relation?.name || 'opdrachtnemer'}</p>
+                  <p className="text-[11px] text-slate-400 font-medium uppercase tracking-tight">Directe lijn met {relation?.name || 'relatie'}</p>
                 </div>
               </div>
 
@@ -959,7 +959,7 @@ export default function DossierDetailPage() {
                     value={newWorkorder.responsibility}
                     onChange={e => setNewWorkorder({...newWorkorder, responsibility: e.target.value})}
                   >
-                    <option>Opdrachtnemer (Volledig)</option>
+                    <option>Relatie (Volledig)</option>
                     <option>Opdrachtgever (Ondersteunend)</option>
                     <option>Gezamenlijk</option>
                   </select>

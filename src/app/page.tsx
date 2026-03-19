@@ -1,6 +1,6 @@
-import { SelectionPage } from '@/components/layout/SelectionPage';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return <SelectionPage />;
+  redirect('/client/dashboard');
 }
 

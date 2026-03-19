@@ -201,7 +201,7 @@ export interface DossierEvent {
 export const mockDossierEvents: DossierEvent[] = [
   // D-3001 (Jan de Bouwer - Aanbod Verstuurd)
   { id: 'E-001', dossierId: 'D-3001', type: 'inkoopopdracht_verstuurd', date: '2025-03-05T09:00:00', description: 'Inkoopopdracht verstuurd naar Jan de Bouwer (Timmerwerken)', actor: 'Tim de Ruiter', linkedSection: 'inkoopopdracht' },
-  { id: 'E-002', dossierId: 'D-3001', type: 'inkoopopdracht_geaccepteerd', date: '2025-03-06T14:30:00', description: 'Inkoopopdracht geaccepteerd door opdrachtnemer', actor: 'Jan de Bouwer', linkedSection: 'inkoopopdracht' },
+  { id: 'E-002', dossierId: 'D-3001', type: 'inkoopopdracht_geaccepteerd', date: '2025-03-06T14:30:00', description: 'Inkoopopdracht geaccepteerd door relatie', actor: 'Jan de Bouwer', linkedSection: 'inkoopopdracht' },
   { id: 'E-003', dossierId: 'D-3001', type: 'bijlage_toegevoegd', date: '2025-03-07T10:15:00', description: 'Tekening kozijnen fase 1.pdf toegevoegd', actor: 'Tim de Ruiter', linkedSection: 'bijlagen' },
   { id: 'E-004', dossierId: 'D-3001', type: 'aanbod_verstuurd', date: '2025-03-10T11:00:00', description: 'Aanbod verstuurd: €13.750 excl. BTW voor alle kozijnen kavel 1-10', actor: 'Jan de Bouwer', linkedSection: 'aanbod' },
 
@@ -268,7 +268,7 @@ export const mockDeelopdrachten: Deelopdracht[] = [
     description: 'Lift in hal 2 geeft storingscode E-40. Diagnose en reparatie vereist conform SLA.',
     startDate: '2025-03-10',
     expectedResult: 'Lift is storingsvrij en operationeel met meetrapport',
-    responsibility: 'Opdrachtnemer (Volledig)',
+    responsibility: 'Relatie (Volledig)',
     status: 'In_Uitvoering',
     historyCount: 2
   },
@@ -279,7 +279,7 @@ export const mockDeelopdrachten: Deelopdracht[] = [
     description: '10 armaturen noodverlichting vallen buiten de keuring en moeten preventief vervangen worden.',
     startDate: '2025-02-15',
     expectedResult: 'Werkende noodverlichting incl. nieuw certificaat',
-    responsibility: 'Opdrachtnemer (Volledig)',
+    responsibility: 'Relatie (Volledig)',
     status: 'Opgeleverd',
     historyCount: 4
   },
@@ -290,7 +290,7 @@ export const mockDeelopdrachten: Deelopdracht[] = [
     description: 'Intercom unit appartement 4b functioneert niet. Microfoon defect geconstateerd door bewoner.',
     startDate: '2025-03-05',
     expectedResult: 'Intercom unit getest en werkt aan beide kanten',
-    responsibility: 'Opdrachtnemer (Volledig)',
+    responsibility: 'Relatie (Volledig)',
     status: 'Herstel_Nodig',
     historyCount: 3
   }
