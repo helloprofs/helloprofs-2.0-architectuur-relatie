@@ -20,7 +20,7 @@ function POStatusBadge({ status }: { status: string }) {
 }
 
 function POTypeBadge({ type }: { type: string }) {
-  const label = type === 'raamovereenkomst' ? 'Raamovereenkomst' : 'Overeenkomst';
+  const label = type === 'raamovereenkomst' ? 'Raamovereenkomst' : 'Opdrachtovereenkomst';
   const cls   = type === 'raamovereenkomst' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600';
   return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>{label}</span>;
 }

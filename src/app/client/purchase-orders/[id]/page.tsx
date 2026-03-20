@@ -8,7 +8,7 @@ import {
 } from "@/lib/mock-data";
 import {
   ArrowLeft, MapPin, Calendar, Euro, Users, ShieldCheck, ShieldAlert,
-  ShieldX, User, Building2, FileText, ArrowRight
+  ShieldX, User, Building2, FileText
 } from "lucide-react";
 
 function POStatusBadge({ status }: { status: string }) {
@@ -95,7 +95,7 @@ export default function PurchaseOrderDetailPage() {
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs font-mono font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{po.id}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${po.type === 'raamovereenkomst' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'}`}>
-                {po.type === 'raamovereenkomst' ? 'Raamovereenkomst' : 'Overeenkomst'}
+                {po.type === 'raamovereenkomst' ? 'Raamovereenkomst' : 'Opdrachtovereenkomst'}
               </span>
             </div>
             <h2 className="text-2xl font-bold text-slate-800">{po.title}</h2>
@@ -148,7 +148,6 @@ export default function PurchaseOrderDetailPage() {
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Samenwerking</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Dossier status</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Dossier</th>
-                <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -182,11 +181,6 @@ export default function PurchaseOrderDetailPage() {
                         {dossier.id}
                       </div>
                     ) : <span className="text-xs text-slate-300">—</span>}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800 transition-colors">
-                      Bekijk <ArrowRight size={13} />
-                    </span>
                   </td>
                 </tr>
               ))}
