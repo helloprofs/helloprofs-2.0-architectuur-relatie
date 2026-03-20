@@ -23,6 +23,7 @@ export interface WKAData {
 export interface RelationChain {
   parentId: string;
   childId: string;
+  purchaseOrderId?: string; // Optional: Link to a specific project/PO
   type: 'Hoofdaannemer_Onderaannemer' | 'Onderaannemer_ZZP';
   dateLinked: string;
 }
@@ -167,18 +168,21 @@ export const mockRelationChains: RelationChain[] = [
   {
     parentId: 'R-002', // Electra Fix BV (Hoofdaannemer/B2B)
     childId: 'R-001',  // Jan de Bouwer (ZZP Onderaannemer)
+    purchaseOrderId: 'PO-2002',
     type: 'Hoofdaannemer_Onderaannemer',
     dateLinked: '2025-02-20'
   },
   {
     parentId: 'R-001', // Jan de Bouwer
     childId: 'R-004', // Metselbedrijf De Graaf
+    purchaseOrderId: 'PO-2001',
     type: 'Hoofdaannemer_Onderaannemer',
     dateLinked: '2025-03-01'
   },
   {
     parentId: 'R-001', // Jan de Bouwer
     childId: 'R-005', // D. Bakker Tegelwerken
+    purchaseOrderId: 'PO-2002',
     type: 'Hoofdaannemer_Onderaannemer',
     dateLinked: '2025-03-05'
   }
@@ -216,7 +220,7 @@ export const mockProjects: Project[] = [
 ];
 
 // --- 3. INKOOPOPDRACHTLAAG ---
-export type PurchaseOrderType = 'Overeenkomst' | 'Raamopdracht';
+export type PurchaseOrderType = 'opdrachtovereenkomst' | 'raamovereenkomst';
 
 export interface PurchaseOrder {
   id: string;
@@ -236,7 +240,7 @@ export const mockPurchaseOrders: PurchaseOrder[] = [
     projectId: 'P-100', // Koppel aan Almere
     title: 'Aftimmeren kozijnen fase 1',
     description: 'Het volledig aftimmeren van alle houten kozijnen op begane grond van kavel 1 t/m 10.',
-    type: 'Overeenkomst',
+    type: 'opdrachtovereenkomst',
     budget: 15000,
     dateCreated: '2025-03-05',
     status: 'Verstuurd',
@@ -247,7 +251,7 @@ export const mockPurchaseOrders: PurchaseOrder[] = [
     projectId: 'P-101', // Koppel aan Onderhoud
     title: 'Raamovereenkomst Elektra Storingen',
     description: '24/7 bereikbaarheid voor elektra storingen. Facturatie via deelopdrachten.',
-    type: 'Raamopdracht',
+    type: 'raamovereenkomst',
     dateCreated: '2025-01-10',
     status: 'Verstuurd',
     invitedRelationIds: ['R-001', 'R-002'] // Jan de Bouwer & Electra Fix
