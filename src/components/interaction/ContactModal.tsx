@@ -90,7 +90,7 @@ export function ContactModal({
     handleClose();
   };
 
-  const canProceed = description.trim().length > 0;
+  const canProceed = description.trim().length > 0 && selectedPOId.trim().length > 0;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -145,11 +145,14 @@ export function ContactModal({
                   onChange={e => setSelectedPOId(e.target.value)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none"
                 >
+                  <option value="" disabled>— Selecteer een inkoopopdracht —</option>
                   {activePOs.map(po => (
                     <option key={po.id} value={po.id}>{po.id} — {po.title}</option>
                   ))}
-                  <option value="">Ad-hoc (geen IO)</option>
                 </select>
+                {activePOs.length === 0 && (
+                  <p className="text-[11px] text-rose-500 mt-1">Geen inkoopopdrachten beschikbaar voor deze relatie.</p>
+                )}
               </div>
 
               {/* Omschrijving */}
@@ -200,7 +203,9 @@ export function ContactModal({
               </div>
 
               {!canProceed && (
-                <p className="text-center text-xs text-slate-400">Vul een omschrijving in om door te gaan</p>
+                <p className="text-center text-xs text-slate-400">
+                  {!selectedPOId ? 'Selecteer een inkoopopdracht om door te gaan' : 'Vul een omschrijving in om door te gaan'}
+                </p>
               )}
             </div>
           </>

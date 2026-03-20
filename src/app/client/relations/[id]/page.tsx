@@ -241,12 +241,19 @@ export default function RelationDetailPage() {
               {relation.kvk && <span className="flex items-center gap-1.5"><Building2 size={12} className="text-slate-400" /> KVK {relation.kvk}</span>}
             </div>
           </div>
-          <button
-            onClick={() => setKlusModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer border-none shrink-0"
-          >
-            <Zap size={14} /> Dienst Toewijzen
-          </button>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <button
+              onClick={() => setKlusModalOpen(true)}
+              disabled={relation.complianceStatus !== 'Groen'}
+              title={relation.complianceStatus !== 'Groen' ? 'Dienst toewijzen is geblokkeerd: compliance niet op orde' : undefined}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-lg text-sm font-bold transition-all cursor-pointer disabled:cursor-not-allowed border-none"
+            >
+              <Zap size={14} /> Dienst Toewijzen
+            </button>
+            {relation.complianceStatus !== 'Groen' && (
+              <span className="text-[10px] text-rose-500 font-medium">Geblokkeerd: compliance niet op orde</span>
+            )}
+          </div>
         </div>
       </div>
 

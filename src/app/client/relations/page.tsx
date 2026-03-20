@@ -6,35 +6,52 @@ import { Search, Filter, Plus, User, Building2, ShieldCheck, ShieldAlert, Shield
 import { useRouter } from "next/navigation";
 import { ContactModal } from "@/components/interaction/ContactModal";
 
-// 4-stage flow: Uitgenodigd → Screening → Actieve Samenwerking → Beëindigd
-function StatusBadge({ status }: { status: RelationStatus }) {
-  const map: Record<RelationStatus, { label: string; cls: string }> = {
-    'Uitgenodigd':            { label: 'Uitgenodigd',         cls: 'bg-slate-100 text-slate-600' },
-    'Aangemeld':              { label: 'Screening',           cls: 'bg-blue-100 text-blue-700' },
-    'Goedgekeurd':            { label: 'Screening',           cls: 'bg-blue-100 text-blue-700' },
-    'Samenwerking_Actief':    { label: 'Actieve Samenwerking', cls: 'bg-emerald-100 text-emerald-700' },
-    'Samenwerking_Beeindigd': { label: 'Beëindigd',           cls: 'bg-slate-100 text-slate-500' },
-    'Gearchiveerd':           { label: 'Beëindigd',           cls: 'bg-slate-100 text-slate-500' },
-  };
-  const { label, cls } = map[status];
-  return (
-    <span className={`cursor-pointer px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      {label}
-    </span>
-  );
-}
+// Combined samenwerking badge: pre-active stages show only stage, active shows compliance
+function SamenwerkingBadge({ status, compliance }: { status: RelationStatus; compliance: ComplianceStatus }) {
+  // Pre-active: compliance not yet relevant
+  if (status === 'Uitgenodigd') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 cursor-pointer">
+        Uitgenodigd
+      </span>
+    );
+  }
+  if (status === 'Aangemeld' || status === 'Goedgekeurd') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 cursor-pointer">
+        Screening
+      </span>
+    );
+  }
+  if (status === 'Samenwerking_Beeindigd' || status === 'Gearchiveerd') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-400 cursor-pointer">
+        Beëindigd
+      </span>
+    );
+  }
 
-function ComplianceBadge({ status }: { status: ComplianceStatus }) {
-  const configs: Record<ComplianceStatus, { color: string; icon: React.ElementType; label: string }> = {
-    'Groen':  { color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: ShieldCheck, label: 'Compliant' },
-    'Oranje': { color: 'text-amber-600 bg-amber-50 border-amber-100',       icon: ShieldAlert, label: 'Actie Vereist' },
-    'Rood':   { color: 'text-rose-600 bg-rose-50 border-rose-100',          icon: ShieldX,     label: 'Non-Compliant' },
-  };
-  const { color, icon: Icon, label } = configs[status];
+  // Active: show compliance state
+  if (compliance === 'Groen') {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer">
+        <ShieldCheck size={13} strokeWidth={2.5} />
+        <span>Actief · Compliant</span>
+      </div>
+    );
+  }
+  if (compliance === 'Oranje') {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200 cursor-pointer">
+        <ShieldAlert size={13} strokeWidth={2.5} />
+        <span>Actief · Actie Vereist</span>
+      </div>
+    );
+  }
   return (
-    <div className={`cursor-pointer inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${color}`}>
-      <Icon size={14} />
-      <span>{label}</span>
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200 cursor-pointer">
+      <ShieldX size={13} strokeWidth={2.5} />
+      <span>Actief · Non-Compliant</span>
     </div>
   );
 }
@@ -198,32 +215,28 @@ export default function RelationsPage() {
           {showFilters && (
             <div className="flex flex-wrap gap-3 pt-1">
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Samenwerking</label>
                 <select
-                  value={filterStatus}
-                  onChange={e => setFilterStatus(e.target.value as RelationStatus | '')}
+                  value={filterStatus || filterCompliance}
+                  onChange={e => {
+                    const v = e.target.value;
+                    if (v === 'Uitgenodigd' || v === 'Aangemeld' || v === 'Samenwerking_Beeindigd') {
+                      setFilterStatus(v as RelationStatus); setFilterCompliance('');
+                    } else if (v === 'Groen' || v === 'Oranje' || v === 'Rood') {
+                      setFilterCompliance(v as ComplianceStatus); setFilterStatus('Samenwerking_Actief');
+                    } else {
+                      setFilterStatus(''); setFilterCompliance('');
+                    }
+                  }}
                   className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
                 >
-                  <option value="">Alle statussen</option>
+                  <option value="">Alle</option>
                   <option value="Uitgenodigd">Uitgenodigd</option>
                   <option value="Aangemeld">Screening</option>
-                  <option value="Goedgekeurd">Screening (goedgekeurd)</option>
-                  <option value="Samenwerking_Actief">Actieve Samenwerking</option>
+                  <option value="Groen">Actief · Compliant</option>
+                  <option value="Oranje">Actief · Actie Vereist</option>
+                  <option value="Rood">Actief · Non-Compliant</option>
                   <option value="Samenwerking_Beeindigd">Beëindigd</option>
-                  <option value="Gearchiveerd">Gearchiveerd</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Compliance</label>
-                <select
-                  value={filterCompliance}
-                  onChange={e => setFilterCompliance(e.target.value as ComplianceStatus | '')}
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
-                >
-                  <option value="">Alle compliance</option>
-                  <option value="Groen">Compliant</option>
-                  <option value="Oranje">Actie Vereist</option>
-                  <option value="Rood">Non-Compliant</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
@@ -261,8 +274,7 @@ export default function RelationsPage() {
               <tr className="border-b border-slate-100">
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Relatie</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">KVK</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Compliance</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Samenwerking</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">IO&apos;s</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actie</th>
               </tr>
@@ -270,7 +282,7 @@ export default function RelationsPage() {
             <tbody className="divide-y divide-slate-100">
               {filteredRelations.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
+                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-slate-400">
                     Geen relaties gevonden voor deze zoekopdracht of filters.
                   </td>
                 </tr>
@@ -297,10 +309,7 @@ export default function RelationsPage() {
                       <span className="text-sm text-slate-500 font-mono">{relation.kvk || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={relation.status} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <ComplianceBadge status={relation.complianceStatus} />
+                      <SamenwerkingBadge status={relation.status} compliance={relation.complianceStatus} />
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
