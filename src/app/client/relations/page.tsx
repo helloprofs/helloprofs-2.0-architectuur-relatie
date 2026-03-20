@@ -1,7 +1,7 @@
 "use client";
 
-import { mockRelations, RelationStatus } from "@/lib/mock-data";
-import { Search, Filter, Plus, User, Building2, MoreVertical } from "lucide-react";
+import { mockRelations, RelationStatus, ComplianceStatus } from "@/lib/mock-data";
+import { Search, Filter, Plus, User, Building2, MoreVertical, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 
 function StatusBadge({ status }: { status: RelationStatus }) {
   const styles: Record<RelationStatus, string> = {
@@ -26,6 +26,23 @@ function StatusBadge({ status }: { status: RelationStatus }) {
     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${styles[status]}`}>
       {labels[status]}
     </span>
+  );
+}
+
+function ComplianceBadge({ status }: { status: ComplianceStatus }) {
+  const configs: Record<ComplianceStatus, { color: string, icon: any, label: string }> = {
+    'Groen': { color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: ShieldCheck, label: 'Compliant' },
+    'Oranje': { color: 'text-amber-600 bg-amber-50 border-amber-100', icon: ShieldAlert, label: 'Actie Vereist' },
+    'Rood': { color: 'text-rose-600 bg-rose-50 border-rose-100', icon: ShieldX, label: 'Non-Compliant' },
+  };
+
+  const { color, icon: Icon, label } = configs[status];
+
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${color}`}>
+      <Icon size={14} />
+      <span>{label}</span>
+    </div>
   );
 }
 
@@ -70,6 +87,7 @@ export default function RelationsPage() {
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Relatie</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">KVK</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Compliance</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Labels</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Dossiers</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Acties</th>
@@ -98,6 +116,9 @@ export default function RelationsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={relation.status} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <ComplianceBadge status={relation.complianceStatus} />
                   </td>
                   <td className="px-6 py-4 hidden lg:table-cell">
                     <div className="flex flex-wrap gap-1">

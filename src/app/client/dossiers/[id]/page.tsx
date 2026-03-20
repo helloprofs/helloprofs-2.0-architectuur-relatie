@@ -13,8 +13,32 @@ import {
 import {
   ArrowLeft, ArrowRight, Clock, FileText, FileCheck, Hammer, Receipt,
   Paperclip, MessageSquare, Download, Plus, CheckCircle,
-  XCircle, Send, AlertTriangle, File, User
+  XCircle, Send, AlertTriangle, File as FileIcon, User, Phone, MessageCircle, MoreVertical,
+  ShieldCheck, ShieldAlert, ShieldX, FolderKanban, Users, Building2, Landmark
 } from "lucide-react";
+
+import { OutcomeOverlay } from "@/components/interaction/OutcomeOverlay";
+import { WhatsAppLink } from "@/components/interaction/WhatsAppLink";
+
+import { ComplianceStatus } from "@/lib/mock-data";
+
+// ─── Compliance Badge ──────────────────────────────────────────
+function ComplianceBadge({ status }: { status: ComplianceStatus }) {
+  const configs: Record<ComplianceStatus, { color: string, icon: any, label: string }> = {
+    'Groen': { color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: ShieldCheck, label: 'Compliant' },
+    'Oranje': { color: 'text-amber-600 bg-amber-50 border-amber-100', icon: ShieldAlert, label: 'Actie Vereist' },
+    'Rood': { color: 'text-rose-600 bg-rose-50 border-rose-100', icon: ShieldX, label: 'Non-Compliant' },
+  };
+
+  const { color, icon: Icon, label } = configs[status];
+
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider ${color}`}>
+      <Icon size={12} />
+      <span>{label}</span>
+    </div>
+  );
+}
 
 // ─── Status Badge ────────────────────────────────────────────
 function StatusBadge({ status }: { status: DossierStatus }) {
@@ -26,6 +50,7 @@ function StatusBadge({ status }: { status: DossierStatus }) {
     'Aanbod_Geaccepteerd': { label: 'Aanbod Geaccepteerd', cls: 'bg-teal-100 text-teal-700' },
     'Contract_Lopend': { label: 'Contract Lopend', cls: 'bg-emerald-100 text-emerald-700' },
     'Contract_Verlopen': { label: 'Contract Verlopen', cls: 'bg-slate-100 text-slate-500' },
+    'Compliance_Freeze': { label: 'Compliance Freeze', cls: 'bg-rose-100 text-rose-700 animate-pulse' },
   };
   const { label, cls } = map[status];
   return <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${cls}`}>{label}</span>;
@@ -44,6 +69,10 @@ function EventIcon({ type }: { type: EventType }) {
     'bijlage_toegevoegd': { icon: <Paperclip size={14} />, cls: 'bg-slate-100 text-slate-600' },
     'bericht_verstuurd': { icon: <MessageSquare size={14} />, cls: 'bg-slate-100 text-slate-600' },
     'controle_vastgelegd': { icon: <AlertTriangle size={14} />, cls: 'bg-amber-100 text-amber-600' },
+    'contact_call': { icon: <Phone size={14} />, cls: 'bg-blue-100 text-blue-600' },
+    'contact_whatsapp': { icon: <MessageCircle size={14} />, cls: 'bg-emerald-100 text-emerald-600' },
+    'refusal_evidence': { icon: <XCircle size={14} />, cls: 'bg-rose-100 text-rose-600' },
+    'compliance_check': { icon: <ShieldCheck size={14} />, cls: 'bg-indigo-100 text-indigo-600' },
   };
   const { icon, cls } = map[type];
   return <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${cls}`}>{icon}</div>;
@@ -85,6 +114,9 @@ export default function DossierDetailPage() {
   });
 
   const [localDeelopdrachten, setLocalDeelopdrachten] = useState(mockDeelopdrachten.filter(d => d.dossierId === id));
+
+  // State for Interaction Engine
+  const [isOutcomeOverlayOpen, setIsOutcomeOverlayOpen] = useState(false);
 
   const handleCreateWorkorder = () => {
     const newItem = {
@@ -308,6 +340,7 @@ export default function DossierDetailPage() {
     { id: 'bijlagen', label: 'Bijlagen', icon: Paperclip },
     { id: 'communicatie', label: 'Communicatie', icon: MessageSquare },
     { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
+    { id: 'keten', label: 'Keten-Inzicht', icon: Users },
     { id: 'factuur', label: 'Factuur', icon: Receipt },
   ];
 
@@ -323,29 +356,77 @@ export default function DossierDetailPage() {
 
       {/* Header Card */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
               <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{dossier.id}</span>
               {po && <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-medium">{po.type}</span>}
+              {relation && <ComplianceBadge status={relation.complianceStatus} />}
             </div>
-            <h2 className="text-2xl font-bold text-slate-800">{po?.title || dossier.id}</h2>
-            <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-500">
-              {project && <span>📁 {project.name}</span>}
-              {relation && <span>👤 {relation.name}</span>}
+            <h2 className="text-2xl font-bold text-slate-800 break-words">{po?.title || dossier.id}</h2>
+            <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500">
+              {project && <span className="flex items-center gap-1.5"><FolderKanban size={14} className="text-slate-400" /> {project.name}</span>}
+              {relation && <span className="flex items-center gap-1.5"><User size={14} className="text-slate-400" /> {relation.name}</span>}
+              <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> Gestart op {new Date(dossier.id === 'D-3001' ? '2025-03-05' : '2025-01-10').toLocaleDateString('nl-NL')}</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-3 self-center sm:self-start">
-            <StatusBadge status={dossier.status} />
+
+          <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 w-full lg:w-auto">
+            {/* Interaction Engine */}
+            <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-2xl border border-slate-100 w-full sm:w-auto">
+              <button 
+                onClick={() => setIsOutcomeOverlayOpen(true)}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all cursor-pointer border-none"
+              >
+                <Phone size={16} fill="currentColor" />
+                <span>Bellen</span>
+              </button>
+              
+              <WhatsAppLink 
+                phone={relation?.phone || "0612345678"} 
+                relationName={relation?.name || "ZZP'er"} 
+                dossierId={dossier.id} 
+                type="Aanbod" 
+              />
+            </div>
+            
             <button 
               onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-sm w-full sm:w-auto"
             >
-              <Download size={16} /> Exporteren
+              <Download size={16} /> Audit Export
             </button>
           </div>
         </div>
       </div>
+
+      {/* Outcome Overlay */}
+      <OutcomeOverlay 
+        isOpen={isOutcomeOverlayOpen}
+        onClose={() => setIsOutcomeOverlayOpen(false)}
+        relationName={relation?.name || 'Relatie'}
+        onSelect={(outcome, reason) => {
+          const description = outcome === 'Geweigerd' 
+            ? `Refusal Evidence: Telefonische weigering vastgelegd. ${reason ? `Reden: ${reason}` : ''}` 
+            : `Contact vastgelegd: ${outcome}`;
+          
+          const newEvent = {
+            id: `ev-call-${Date.now()}`,
+            dossierId: id!,
+            type: outcome === 'Geweigerd' ? ('refusal_evidence' as const) : ('contact_call' as const),
+            description,
+            date: new Date().toISOString(),
+            actor: 'Tim de Ruiter',
+            metadata: { 
+              outcome, 
+              reason, 
+              channel: 'Call'
+            } as any
+          };
+          
+          setLocalEvents([newEvent, ...localEvents]);
+        }}
+      />
 
       {/* Tabs */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -372,6 +453,95 @@ export default function DossierDetailPage() {
         {/* Tab Content */}
         <div className="p-6">
 
+          {/* ── KETEN-INZICHT ── */}
+          {activeTab === 'keten' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-end mb-2">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Keten-Inzicht (WKA)</h3>
+                  <p className="text-sm text-slate-500 mt-1">Status van alle onderaannemers in de keten van {relation?.name}.</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-6">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <User size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800">{relation?.name} <span className="text-xs text-slate-400 font-medium ml-2">(Relatie B)</span></h4>
+                    <p className="text-xs text-slate-500">Hoofdaannemer in dit dossier</p>
+                  </div>
+                  <div className="ml-auto">
+                    {relation && <ComplianceBadge status={relation.complianceStatus} />}
+                  </div>
+                </div>
+
+                <div className="relative pl-8 pt-4 space-y-4">
+                  <div className="absolute left-6 top-0 bottom-4 w-0.5 bg-blue-100" />
+                  
+                  {/* Mock Subcontractor */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative">
+                    <div className="absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-4 h-0.5 bg-blue-100" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                          <Building2 size={16} />
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-bold text-slate-800">Metselbedrijf De Graaf <span className="text-[10px] text-slate-400 font-medium ml-1">(Relatie C)</span></h5>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Onderaannemer van {relation?.name}</p>
+                        </div>
+                      </div>
+                      <ComplianceBadge status="Groen" />
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-50 grid grid-cols-2 gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                       <div className="flex items-center gap-2">
+                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                         <span>WKA Documenten OK</span>
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                         <span>G-Rekening Actief</span>
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* Mock Subcontractor 2 */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative">
+                    <div className="absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-4 h-0.5 bg-blue-100" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                          <User size={16} />
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-bold text-slate-800">D. Bakker Tegelwerken <span className="text-[10px] text-slate-400 font-medium ml-1">(Relatie C)</span></h5>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Onderaannemer van {relation?.name}</p>
+                        </div>
+                      </div>
+                      <ComplianceBadge status="Oranje" />
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-50 text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-2">
+                       <AlertTriangle size={12} />
+                       <span>KVK Uittreksel Verouderd</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 p-4 bg-slate-800 text-white rounded-xl shadow-inner">
+                   <div className="flex items-center gap-3">
+                     <ShieldCheck className="text-blue-400" />
+                     <div>
+                        <h5 className="text-xs font-bold uppercase tracking-widest">Privacy Guardrail</h5>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Financiële afspraken tussen de ZZP'er en onderaannemers zijn strikt afgeschermd.</p>
+                     </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ── FACTUUR ── */}
           {activeTab === 'factuur' && (
             <div className="space-y-6">
@@ -381,6 +551,19 @@ export default function DossierDetailPage() {
                   <p className="text-sm text-slate-500 mt-1">Overzicht van alle financiële vastleggingen binnen dit dossier.</p>
                 </div>
               </div>
+
+              {/* Facturatie-Block Logic */}
+              {relation?.complianceStatus !== 'Groen' && (
+                <div className="p-5 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-4 animate-pulse">
+                  <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center flex-shrink-0 border border-rose-200">
+                    <ShieldX size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-rose-800 uppercase tracking-tight text-sm">Facturatie-Blokkade Actief</h4>
+                    <p className="text-xs text-rose-600 mt-1 leading-relaxed">De relatie <span className="font-bold">{relation?.name}</span> is momenteel <span className="font-bold">niet volledig compliant</span>. Het systeem blokkeert automatisch het indienen en verwerken van facturen tot de status op 'Groen' staat.</p>
+                  </div>
+                </div>
+              )}
 
               {invoices.length === 0 ? (
                 <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
@@ -831,7 +1014,7 @@ export default function DossierDetailPage() {
                   {attachments.map(att => (
                     <div key={att.id} className="flex items-center gap-4 p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 hover:bg-white transition-colors">
                       <div className="p-2 bg-red-50 rounded-lg">
-                        <File size={18} className="text-red-500" />
+                        <FileIcon size={18} className="text-red-500" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-800 truncate">{att.name}</p>

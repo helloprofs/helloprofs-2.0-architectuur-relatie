@@ -9,16 +9,48 @@ export type RelationStatus =
   | 'Samenwerking_Beeindigd'
   | 'Gearchiveerd';
 
+export type ComplianceStatus = 'Groen' | 'Oranje' | 'Rood';
+
+export interface WKAData {
+  kvkGeldig: boolean;
+  btwGeldig: boolean;
+  idGeldig: boolean;
+  verzekeringGeldig: boolean;
+  modelOvereenkomstGeldig: boolean;
+  gsrekeningGeldig?: boolean;
+}
+
+export interface RelationChain {
+  parentId: string;
+  childId: string;
+  type: 'Hoofdaannemer_Onderaannemer' | 'Onderaannemer_ZZP';
+  dateLinked: string;
+}
+
+export interface RelationEngagement {
+  magicLinkClicks: number;
+  lastWhatsAppSent?: string;
+  lastCallOutcome?: 'Geaccepteerd' | 'Geweigerd' | 'Geen_gehoor';
+}
+
 export interface Relation {
   id: string;
   type: 'ZZP' | 'B2B_MKB';
   name: string;
   kvk?: string;
   email: string;
+  phone?: string;
   status: RelationStatus;
+  complianceStatus: ComplianceStatus;
   labels: string[]; // Vervanging voor Werkgroepen
   dateAdded: string;
   activeDossiersCount: number;
+  wkaData: WKAData;
+  gRekening?: {
+    accountNumber: string;
+    percentage: number;
+  };
+  engagement?: RelationEngagement;
 }
 
 export const mockRelations: Relation[] = [
@@ -29,9 +61,27 @@ export const mockRelations: Relation[] = [
     kvk: '12345678',
     email: 'jan@jandebouwer.nl',
     status: 'Samenwerking_Actief',
+    complianceStatus: 'Groen',
     labels: ['Timmerman', 'Bouw'],
     dateAdded: '2025-01-10',
-    activeDossiersCount: 2
+    activeDossiersCount: 2,
+    wkaData: {
+      kvkGeldig: true,
+      btwGeldig: true,
+      idGeldig: true,
+      verzekeringGeldig: true,
+      modelOvereenkomstGeldig: true
+    },
+    gRekening: {
+      accountNumber: 'NL01 GRES 0123 4567 89',
+      percentage: 25
+    },
+    phone: '+31612345678',
+    engagement: {
+      magicLinkClicks: 12,
+      lastWhatsAppSent: '2025-03-15T10:00:00',
+      lastCallOutcome: 'Geaccepteerd'
+    }
   },
   {
     id: 'R-002',
@@ -39,10 +89,23 @@ export const mockRelations: Relation[] = [
     name: 'Electra Fix BV',
     kvk: '87654321',
     email: 'info@electrafix.nl',
+    phone: '+31687654321',
     status: 'Goedgekeurd', // Nog geen lopend dossier
+    complianceStatus: 'Oranje',
     labels: ['Elektricien', 'Installatietechniek'],
     dateAdded: '2025-02-15',
-    activeDossiersCount: 0
+    activeDossiersCount: 0,
+    wkaData: {
+      kvkGeldig: true,
+      btwGeldig: true,
+      idGeldig: true,
+      verzekeringGeldig: false,
+      modelOvereenkomstGeldig: true
+    },
+    engagement: {
+      magicLinkClicks: 2,
+      lastCallOutcome: 'Geen_gehoor'
+    }
   },
   {
     id: 'R-003',
@@ -50,9 +113,26 @@ export const mockRelations: Relation[] = [
     name: 'Schildersbedrijf Van der Kleij',
     email: 'peter@vdkleij.nl',
     status: 'Uitgenodigd', // Enkel invited, geen KVK nog
+    complianceStatus: 'Rood',
     labels: ['Schilder'],
     dateAdded: '2025-03-01',
-    activeDossiersCount: 0
+    activeDossiersCount: 0,
+    wkaData: {
+      kvkGeldig: false,
+      btwGeldig: false,
+      idGeldig: false,
+      verzekeringGeldig: false,
+      modelOvereenkomstGeldig: false
+    }
+  }
+];
+
+export const mockRelationChains: RelationChain[] = [
+  {
+    parentId: 'R-002', // Electra Fix BV (Hoofdaannemer/B2B)
+    childId: 'R-001',  // Jan de Bouwer (ZZP Onderaannemer)
+    type: 'Hoofdaannemer_Onderaannemer',
+    dateLinked: '2025-02-20'
   }
 ];
 
@@ -134,7 +214,8 @@ export type DossierStatus =
   | 'Aanbod_Verstuurd'
   | 'Aanbod_Geaccepteerd'
   | 'Contract_Lopend'
-  | 'Contract_Verlopen';
+  | 'Contract_Verlopen'
+  | 'Compliance_Freeze'; // New status for blocked dossiers
 
 export interface Dossier {
   id: string;
@@ -186,7 +267,11 @@ export type EventType =
   | 'contract_ondertekend'
   | 'bijlage_toegevoegd'
   | 'bericht_verstuurd'
-  | 'controle_vastgelegd';
+  | 'controle_vastgelegd'
+  | 'contact_call'
+  | 'contact_whatsapp'
+  | 'refusal_evidence'
+  | 'compliance_check';
 
 export interface DossierEvent {
   id: string;
@@ -196,6 +281,12 @@ export interface DossierEvent {
   description: string;
   actor: string; // wie heeft de actie uitgevoerd
   linkedSection?: string; // tab om naar te linken
+  metadata?: {
+    outcome?: 'Geaccepteerd' | 'Geweigerd' | 'Geen_gehoor';
+    reason?: string;
+    channel?: 'WhatsApp' | 'Call' | 'Portal';
+    evidenceId?: string; // link to Refusal Evidence
+  };
 }
 
 export const mockDossierEvents: DossierEvent[] = [
@@ -207,7 +298,20 @@ export const mockDossierEvents: DossierEvent[] = [
 
   // D-3002 (Peter de Schilder - Geweigerd)
   { id: 'E-005', dossierId: 'D-3002', type: 'inkoopopdracht_verstuurd', date: '2025-03-05T09:00:00', description: 'Inkoopopdracht verstuurd naar Schildersbedrijf Van der Kleij', actor: 'Tim de Ruiter', linkedSection: 'inkoopopdracht' },
-  { id: 'E-006', dossierId: 'D-3002', type: 'inkoopopdracht_geweigerd', date: '2025-03-08T16:00:00', description: 'Inkoopopdracht geweigerd. Reden: "Te weinig capaciteit in deze periode."', actor: 'Peter van der Kleij', linkedSection: 'inkoopopdracht' },
+  { 
+    id: 'E-006', 
+    dossierId: 'D-3002', 
+    type: 'refusal_evidence', 
+    date: '2025-03-08T16:00:00', 
+    description: 'Refusal Evidence: Inkoopopdracht geweigerd via WhatsApp.', 
+    actor: 'Peter van der Kleij', 
+    linkedSection: 'inkoopopdracht',
+    metadata: {
+      outcome: 'Geweigerd',
+      reason: 'Te weinig capaciteit in deze periode.',
+      channel: 'WhatsApp'
+    }
+  },
 
   // D-3003 (Electra Fix - Verstuurd)
   { id: 'E-007', dossierId: 'D-3003', type: 'inkoopopdracht_verstuurd', date: '2025-01-10T08:00:00', description: 'Raamovereenkomst verstuurd naar Electra Fix BV', actor: 'Tim de Ruiter', linkedSection: 'inkoopopdracht' },

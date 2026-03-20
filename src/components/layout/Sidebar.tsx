@@ -14,12 +14,12 @@ import { cn } from "@/lib/utils";
 
 
 const mspNavItems = [
-  { name: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
-  { name: "Projecten", href: "/client/projects", icon: FolderKanban },
-  { name: "Inkoopopdrachten", href: "/client/purchase-orders", icon: ShoppingCart },
-  { name: "Samenwerkingen", href: "/client/dossiers", icon: Files },
-  { name: "Rapportage", href: "/client/reporting", icon: BarChart3 },
   { name: "Relaties", href: "/client/relations", icon: Users },
+  { name: "Relatiedossiers", href: "/client/dossiers", icon: Files },
+  { name: "Inkoopopdrachten", href: "/client/purchase-orders", icon: ShoppingCart },
+  { name: "Projecten", href: "/client/projects", icon: FolderKanban },
+  { name: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
+  { name: "Rapportage", href: "/client/reporting", icon: BarChart3 },
 ];
 
 export function Sidebar() {
