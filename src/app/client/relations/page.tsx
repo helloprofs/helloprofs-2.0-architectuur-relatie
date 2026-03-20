@@ -1,8 +1,10 @@
 "use client";
 
-import { mockRelations, RelationStatus, ComplianceStatus } from "@/lib/mock-data";
-import { Search, Filter, Plus, User, Building2, MoreVertical, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
+import { useState } from "react";
+import { mockRelations, mockDossiers, mockPurchaseOrders, RelationStatus, ComplianceStatus } from "@/lib/mock-data";
+import { Search, Filter, Plus, User, Building2, ShieldCheck, ShieldAlert, ShieldX, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ContactModal } from "@/components/interaction/ContactModal";
 
 function StatusBadge({ status }: { status: RelationStatus }) {
   const styles: Record<RelationStatus, string> = {
@@ -47,8 +49,111 @@ function ComplianceBadge({ status }: { status: ComplianceStatus }) {
   );
 }
 
+function InviteModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<'whatsapp' | 'email'>('whatsapp');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-bold text-slate-900">Relatie Uitnodigen</h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 pt-4">
+          <div className="flex gap-2 border-b border-slate-100 pb-0">
+            <button
+              onClick={() => setActiveTab('whatsapp')}
+              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${activeTab === 'whatsapp' ? 'text-blue-700 border-blue-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}
+            >
+              Via WhatsApp
+            </button>
+            <button
+              onClick={() => setActiveTab('email')}
+              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${activeTab === 'email' ? 'text-blue-700 border-blue-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}
+            >
+              Via Email
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {activeTab === 'whatsapp' ? (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Telefoonnummer</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="06 12345678"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+              <button
+                onClick={() => window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hoi! Je bent uitgenodigd om samen te werken via HelloProfs. Registreer je hier: https://helloprofs.nl/registreer')}`, '_blank')}
+                disabled={!phone.trim()}
+                className="w-full py-2.5 bg-[#25D366] hover:bg-[#1ebe5d] disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-sm font-semibold transition-all cursor-pointer border-none disabled:cursor-not-allowed"
+              >
+                Verstuur WhatsApp Uitnodiging
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">E-mailadres</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="naam@bedrijf.nl"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+              <button
+                onClick={() => alert(`E-mail verstuurd naar ${email}`)}
+                disabled={!email.trim()}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-sm font-semibold transition-all cursor-pointer border-none disabled:cursor-not-allowed"
+              >
+                Verstuur Email
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RelationsPage() {
   const router = useRouter();
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [dienstModalOpen, setDienstModalOpen] = useState(false);
+
+  const allRelationsWithPOs = mockRelations.map(relation => {
+    const relatedDossiers = mockDossiers.filter(d => d.relationId === relation.id);
+    const availablePOs: { id: string; title: string; type: string }[] = relatedDossiers
+      .flatMap(d => {
+        const po = mockPurchaseOrders.find(p => p.id === d.purchaseOrderId);
+        if (!po) return [];
+        return [{ id: po.id, title: po.title, type: po.type as string }];
+      });
+    return {
+      id: relation.id,
+      name: relation.name,
+      phone: relation.phone || '',
+      availablePOs,
+    };
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -57,10 +162,22 @@ export default function RelationsPage() {
           <h2 className="text-2xl font-bold text-slate-800">Relaties</h2>
           <p className="text-slate-500 mt-1">Beheer alle connecties en samenwerkingen met relaties.</p>
         </div>
-        <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
-          <Plus size={16} />
-          <span>Relatie Uitnodigen</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setInviteOpen(true)}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+          >
+            <Plus size={16} />
+            <span>Relatie Uitnodigen</span>
+          </button>
+          <button
+            onClick={() => setDienstModalOpen(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+          >
+            <Zap size={16} />
+            <span>Dienst Toewijzen</span>
+          </button>
+        </div>
       </div>
 
       {/* Table Card */}
@@ -95,8 +212,8 @@ export default function RelationsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {mockRelations.map((relation) => (
-                <tr 
-                  key={relation.id} 
+                <tr
+                  key={relation.id}
                   className="hover:bg-slate-50 transition-colors cursor-pointer group"
                   onClick={() => router.push(`/client/relations/${relation.id}`)}
                 >
@@ -144,6 +261,16 @@ export default function RelationsPage() {
           </div>
         </div>
       </div>
+
+      <InviteModal isOpen={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <ContactModal
+        isOpen={dienstModalOpen}
+        onClose={() => setDienstModalOpen(false)}
+        dossierId=""
+        availablePOs={[]}
+        availableRelations={allRelationsWithPOs}
+        onLog={() => {}}
+      />
     </div>
   );
 }

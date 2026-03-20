@@ -15,11 +15,12 @@ interface PO {
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  relationName: string;
-  phone: string;
+  relationName?: string;
+  phone?: string;
   dossierId: string;
   availablePOs: PO[];
   defaultPOId?: string;
+  availableRelations?: { id: string; name: string; phone: string; availablePOs: { id: string; title: string; type: string }[] }[];
   onLog: (params: {
     channel: 'call' | 'whatsapp';
     outcome: Outcome;
@@ -31,8 +32,8 @@ interface ContactModalProps {
 }
 
 export function ContactModal({
-  isOpen, onClose, relationName, phone, dossierId,
-  availablePOs, defaultPOId, onLog
+  isOpen, onClose, relationName: relationNameProp, phone: phoneProp, dossierId,
+  availablePOs, defaultPOId, availableRelations, onLog
 }: ContactModalProps) {
   const [step, setStep] = useState<Step>('context');
   const [channel, setChannel] = useState<'call' | 'whatsapp' | null>(null);
@@ -41,10 +42,15 @@ export function ContactModal({
   const [projectLabel, setProjectLabel] = useState('');
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [reason, setReason] = useState('');
+  const [selectedRelationId, setSelectedRelationId] = useState('');
 
   if (!isOpen) return null;
 
-  const selectedPO = availablePOs.find(p => p.id === selectedPOId);
+  const selectedRelation = availableRelations?.find(r => r.id === selectedRelationId);
+  const relationName = selectedRelation?.name ?? relationNameProp ?? '';
+  const phone = selectedRelation?.phone ?? phoneProp ?? '';
+  const activePOs = selectedRelation ? selectedRelation.availablePOs : availablePOs;
+  const selectedPO = activePOs.find(p => p.id === selectedPOId);
 
   const handleReset = () => {
     setStep('context');
@@ -57,6 +63,7 @@ export function ContactModal({
     handleReset();
     setDescription('');
     setProjectLabel('');
+    setSelectedRelationId('');
     onClose();
   };
 
@@ -70,7 +77,7 @@ export function ContactModal({
     const baseUrl = 'https://hp2.nl/m/';
     const token = Math.random().toString(36).substring(7);
     const magicLink = `${baseUrl}${token}`;
-    const desc = description || selectedPO?.title || 'een opdracht';
+    const desc = description || selectedPO?.title || 'een dienst';
     const msg = `Hoi ${relationName}, heb je tijd voor: "${desc}"? Graag hier even bevestigen of weigeren: ${magicLink}`;
     window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
     onLog({ channel: 'whatsapp', outcome: 'Geaccepteerd', description: desc, projectLabel, poId: selectedPOId });
@@ -94,16 +101,42 @@ export function ContactModal({
           <>
             <div className="px-6 pt-6 pb-4 border-b border-slate-100">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Contact initiëren</span>
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Dienst toewijzen</span>
                 <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
                   <X size={18} />
                 </button>
               </div>
-              <h2 className="text-lg font-bold text-slate-900">{relationName}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Leg context vast voordat je contact opneemt</p>
+              <h2 className="text-lg font-bold text-slate-900">{relationName || 'Relatie selecteren'}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Selecteer relatie, context en zet de dienst uit via bellen of WhatsApp</p>
             </div>
 
             <div className="p-6 space-y-4">
+              {/* Selecteer relatie (alleen tonen als availableRelations aanwezig is) */}
+              {availableRelations && availableRelations.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selecteer relatie</label>
+                  <select
+                    value={selectedRelationId}
+                    onChange={e => {
+                      const relId = e.target.value;
+                      setSelectedRelationId(relId);
+                      const rel = availableRelations.find(r => r.id === relId);
+                      if (rel && rel.availablePOs.length > 0) {
+                        setSelectedPOId(rel.availablePOs[0].id);
+                      } else {
+                        setSelectedPOId('');
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none"
+                  >
+                    <option value="">— Selecteer een relatie —</option>
+                    {availableRelations.map(rel => (
+                      <option key={rel.id} value={rel.id}>{rel.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Inkoopopdracht */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inkoopopdracht</label>
@@ -112,7 +145,7 @@ export function ContactModal({
                   onChange={e => setSelectedPOId(e.target.value)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none"
                 >
-                  {availablePOs.map(po => (
+                  {activePOs.map(po => (
                     <option key={po.id} value={po.id}>{po.id} — {po.title}</option>
                   ))}
                   <option value="">Ad-hoc (geen IO)</option>
@@ -129,7 +162,7 @@ export function ContactModal({
                   autoFocus
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  placeholder="Bijv. Spoedklus spoorherstel Utrecht"
+                  placeholder="Bijv. Spoeddienst spoorherstel Utrecht"
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
                 />
               </div>
@@ -154,7 +187,7 @@ export function ContactModal({
                   className="flex flex-col items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all cursor-pointer border-none disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   <Phone size={20} fill="currentColor" />
-                  <span>Bellen & Loggen</span>
+                  <span>Bellen & Vastleggen</span>
                 </button>
                 <button
                   onClick={handleWhatsApp}
@@ -162,7 +195,7 @@ export function ContactModal({
                   className="flex flex-col items-center justify-center gap-2 py-4 bg-[#25D366] hover:bg-[#1ebe5d] disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-bold text-sm shadow-md shadow-green-500/20 transition-all cursor-pointer border-none disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   <MessageCircle size={20} />
-                  <span>WhatsApp & Loggen</span>
+                  <span>WhatsApp & Vastleggen</span>
                 </button>
               </div>
 

@@ -261,6 +261,7 @@ function DossierStatusBadge({ status }: { status: DossierStatus }) {
     'Aanbod_Geaccepteerd': { label: 'Aanbod Geaccepteerd', cls: 'bg-teal-100 text-teal-700' },
     'Contract_Lopend': { label: 'Contract Lopend', cls: 'bg-emerald-100 text-emerald-700' },
     'Contract_Verlopen': { label: 'Voltooid / Verlopen', cls: 'bg-slate-100 text-slate-500' },
+    'Compliance_Freeze': { label: 'Compliance Freeze', cls: 'bg-yellow-100 text-yellow-700' },
   };
   const { label, cls } = map[status] || { label: status, cls: 'bg-slate-100' };
   return <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${cls}`}>{label}</span>;

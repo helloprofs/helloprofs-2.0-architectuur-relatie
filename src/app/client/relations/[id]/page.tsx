@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { DossierDetailContent } from "@/components/dossier/DossierDetailContent";
+import { ContactModal } from "@/components/interaction/ContactModal";
 import {
   mockRelations, mockDossiers, mockPurchaseOrders, mockProjects, mockDossierEvents,
   ComplianceStatus, Dossier, DossierStatus, EventType
@@ -11,7 +12,7 @@ import {
 import {
   Building2, User, ShieldCheck, ShieldAlert, ShieldX,
   FileText, Landmark, ChevronRight, ChevronLeft, Clock,
-  Mail, Phone, Check, Download, MapPin,
+  Mail, Phone, Check, Download, MapPin, Zap,
   Send, CheckCircle, XCircle, Paperclip, MessageSquare, AlertTriangle, MessageCircle, FileCheck
 } from "lucide-react";
 
@@ -188,6 +189,8 @@ export default function RelationDetailPage() {
   const [activeTab, setActiveTab] = useState<'overzicht' | 'inkoopopdrachten' | 'tijdlijn'>('overzicht');
   const [selectedDossierId, setSelectedDossierId] = useState<string | null>(null);
   const [auditExportOpen, setAuditExportOpen] = useState(false);
+  const [klusModalOpen, setKlusModalOpen] = useState(false);
+  const [extraEvents, setExtraEvents] = useState<any[]>([]);
 
   if (!relation) return <div className="p-8 text-center text-slate-500">Relatie niet gevonden.</div>;
 
@@ -199,8 +202,7 @@ export default function RelationDetailPage() {
   });
 
   // All events across all dossiers of this relation, sorted newest first
-  const allEvents = mockDossierEvents
-    .filter(e => relatedDossiers.some(d => d.id === e.dossierId))
+  const allEvents = [...mockDossierEvents.filter(e => relatedDossiers.some(d => d.id === e.dossierId)), ...extraEvents]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const selectedItem = dossiersWithPO.find(d => d.id === selectedDossierId);
@@ -221,24 +223,30 @@ export default function RelationDetailPage() {
       </nav>
 
       {/* Header Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 shrink-0">
-            {relation.type === 'ZZP' ? <User size={40} /> : <Building2 size={40} />}
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="flex items-center gap-5">
+          <div className="w-14 h-14 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 shrink-0">
+            {relation.type === 'ZZP' ? <User size={32} /> : <Building2 size={32} />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-3">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{relation.name}</h1>
+            <div className="flex items-center gap-2.5 mb-2">
+              <h1 className="text-xl font-bold text-slate-900">{relation.name}</h1>
               <ComplianceBadge status={relation.complianceStatus} />
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"><Mail size={14} className="text-slate-400" /> {relation.email}</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500">
+              <span className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"><Mail size={12} className="text-slate-400" /> {relation.email}</span>
               <span className="w-px h-3 bg-slate-200 hidden sm:block" />
-              <span className="flex items-center gap-1.5"><Phone size={14} className="text-slate-400" /> {relation.phone || '—'}</span>
+              <span className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400" /> {relation.phone || '—'}</span>
               <span className="w-px h-3 bg-slate-200 hidden sm:block" />
-              {relation.kvk && <span className="flex items-center gap-1.5"><Building2 size={14} className="text-slate-400" /> KVK {relation.kvk}</span>}
+              {relation.kvk && <span className="flex items-center gap-1.5"><Building2 size={12} className="text-slate-400" /> KVK {relation.kvk}</span>}
             </div>
           </div>
+          <button
+            onClick={() => setKlusModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer border-none shrink-0"
+          >
+            <Zap size={14} /> Dienst Toewijzen
+          </button>
         </div>
       </div>
 
@@ -385,7 +393,10 @@ export default function RelationDetailPage() {
                   >
                     <ChevronLeft size={16} /> Terug naar inkoopopdrachten
                   </button>
-                  <DossierDetailContent dossierId={selectedItem.id} />
+                  <DossierDetailContent
+                    dossierId={selectedItem.id}
+                    onEventLogged={(event) => setExtraEvents(prev => [event, ...prev])}
+                  />
                 </div>
               )}
             </>
@@ -442,6 +453,26 @@ export default function RelationDetailPage() {
           )}
         </div>
       </div>
+
+      <ContactModal
+        isOpen={klusModalOpen}
+        onClose={() => setKlusModalOpen(false)}
+        relationName={relation.name}
+        phone={relation.phone || '0612345678'}
+        dossierId={dossiersWithPO[0]?.id || ''}
+        availablePOs={dossiersWithPO.map(d => ({ id: d.id, title: d.po?.title ?? d.id, type: d.po?.type ?? '' }))}
+        defaultPOId={dossiersWithPO[0]?.id}
+        onLog={({ channel, outcome, description, poId }) => {
+          setExtraEvents(prev => [{
+            id: `ev-${Date.now()}`,
+            dossierId: poId || dossiersWithPO[0]?.id || '',
+            type: outcome === 'Geweigerd' ? 'refusal_evidence' : channel === 'whatsapp' ? 'contact_whatsapp' : 'contact_call',
+            description: `${channel === 'call' ? '📞 Telefoon' : '💬 WhatsApp'}: "${description}" — ${outcome.replace('_', ' ')}`,
+            date: new Date().toISOString(),
+            actor: 'Tim de Ruiter',
+          }, ...prev]);
+        }}
+      />
 
       <AuditExportModal
         isOpen={auditExportOpen}

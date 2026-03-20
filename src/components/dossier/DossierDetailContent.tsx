@@ -11,7 +11,7 @@ import {
 } from "@/lib/mock-data";
 import {
   ArrowLeft, ArrowRight, Clock, FileText, FileCheck, Hammer, Receipt,
-  Paperclip, MessageSquare, Download, Plus, CheckCircle, ChevronRight,
+  Paperclip, MessageSquare, Download, Plus, CheckCircle, ChevronRight, ChevronDown, ChevronUp,
   XCircle, Send, AlertTriangle, File as FileIcon, User, Phone, MessageCircle,
   ShieldCheck, ShieldAlert, ShieldX, FolderKanban, Users, Building2
 } from "lucide-react";
@@ -73,15 +73,16 @@ interface DossierDetailContentProps {
   dossierId: string;
   /** Toon de breadcrumb-navigatie bovenaan */
   showBreadcrumb?: boolean;
+  onEventLogged?: (event: any) => void;
 }
 
-export function DossierDetailContent({ dossierId, showBreadcrumb = false }: DossierDetailContentProps) {
+export function DossierDetailContent({ dossierId, showBreadcrumb = false, onEventLogged }: DossierDetailContentProps) {
   const id = dossierId;
   const { projects, purchaseOrders, dossiers, isLoaded } = useDynamicState();
 
   const dossier = dossiers.find(d => d.id === id);
   const po = purchaseOrders.find(p => p.id === dossier?.purchaseOrderId);
-  const isRaamopdracht = po?.type === 'Raamopdracht';
+  const isRaamopdracht = po?.type === 'raamovereenkomst';
 
   const [activeTab, setActiveTab] = useState(isRaamopdracht ? 'deelopdrachten' : 'tijdlijn');
   const [filterStatus, setFilterStatus] = useState<string>('In_Uitvoering');
@@ -104,6 +105,7 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
   });
   const [localDeelopdrachten, setLocalDeelopdrachten] = useState(mockDeelopdrachten.filter(d => d.dossierId === id));
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [expandedKeten, setExpandedKeten] = useState<Set<string>>(new Set());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -161,7 +163,9 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
     setLocalInvoices(prev => prev.map(inv =>
       inv.id === invoiceId ? { ...inv, status: 'Factuur_Verstuurd', isConcept: false, logs: [...inv.logs, { date: new Date().toISOString(), action: 'Factuur goedgekeurd', actor: 'Tim de Ruiter' }] } : inv
     ));
-    setLocalEvents([{ id: `ev-${Date.now()}`, dossierId: id, type: 'inkoopopdracht_geaccepteerd' as any, description: `Factuur ${invoice.invoiceNumber} goedgekeurd`, date: new Date().toISOString(), actor: 'Tim de Ruiter', linkedSection: 'factuur' }, ...localEvents]);
+    const newEvent = { id: `ev-${Date.now()}`, dossierId: id, type: 'inkoopopdracht_geaccepteerd' as any, description: `Factuur ${invoice.invoiceNumber} goedgekeurd`, date: new Date().toISOString(), actor: 'Tim de Ruiter', linkedSection: 'factuur' };
+    setLocalEvents([newEvent, ...localEvents]);
+    onEventLogged?.(newEvent);
     setSelectedInvoice(null);
   };
 
@@ -173,7 +177,9 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
     setLocalInvoices(prev => prev.map(inv =>
       inv.id === invoiceId ? { ...inv, status: 'Herziening_Nodig', logs: [...inv.logs, { date: new Date().toISOString(), action: `Aanpassing gevraagd: ${changeReason}`, actor: 'Tim de Ruiter' }] } : inv
     ));
-    setLocalEvents([{ id: `ev-${Date.now()}`, dossierId: id, type: 'inkoopopdracht_geweigerd' as any, description: `Aanpassingen gevraagd voor factuur ${invoice.invoiceNumber}: ${changeReason}`, date: new Date().toISOString(), actor: 'Tim de Ruiter', linkedSection: 'factuur' }, ...localEvents]);
+    const newEvent = { id: `ev-${Date.now()}`, dossierId: id, type: 'inkoopopdracht_geweigerd' as any, description: `Aanpassingen gevraagd voor factuur ${invoice.invoiceNumber}: ${changeReason}`, date: new Date().toISOString(), actor: 'Tim de Ruiter', linkedSection: 'factuur' };
+    setLocalEvents([newEvent, ...localEvents]);
+    onEventLogged?.(newEvent);
     setSelectedInvoice(null);
     setIsRequestingChanges(false);
     setChangeReason("");
@@ -212,13 +218,13 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
 
   const visibleTabs = [
     ...(isRaamopdracht ? [{ id: 'deelopdrachten', label: 'Deelopdrachten', icon: Hammer }] : []),
-    { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
     { id: 'inkoopopdracht', label: 'Inkoopopdracht', icon: FileText },
     { id: 'aanbod', label: 'Aanbod', icon: FileCheck },
     { id: 'factuur', label: 'Facturen', icon: Receipt },
     { id: 'contract', label: 'Contract', icon: FileCheck },
     { id: 'bijlagen', label: 'Bijlagen', icon: Paperclip },
     { id: 'keten', label: 'Keten-Inzicht', icon: Users },
+    { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
   ];
 
   return (
@@ -234,37 +240,37 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
       )}
 
       {/* Header Card */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{dossier.id}</span>
-              {po && <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-medium">{po.type}</span>}
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded tracking-wide">{dossier.id}</span>
+              {po && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-semibold uppercase tracking-wide">{po.type}</span>}
               {relation && <ComplianceBadge status={relation.complianceStatus} />}
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 break-words">{po?.title || dossier.id}</h2>
-            <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500">
-              {project && <span className="flex items-center gap-1.5"><FolderKanban size={14} className="text-slate-400" /> {project.name}</span>}
-              {relation && <span className="flex items-center gap-1.5"><User size={14} className="text-slate-400" /> {relation.name}</span>}
-              <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> Gestart op {new Date(dossier.id === 'D-3001' ? '2025-03-05' : '2025-01-10').toLocaleDateString('nl-NL')}</span>
+            <h2 className="text-xl font-bold text-slate-900">{po?.title || dossier.id}</h2>
+            <div className="flex flex-wrap gap-4 mt-2 text-xs text-slate-500">
+              {project && <span className="flex items-center gap-1.5"><FolderKanban size={12} className="text-slate-400" /> {project.name}</span>}
+              {relation && <span className="flex items-center gap-1.5"><User size={12} className="text-slate-400" /> {relation.name}</span>}
+              <span className="flex items-center gap-1.5"><Clock size={12} className="text-slate-400" /> Gestart op {new Date(dossier.id === 'D-3001' ? '2025-03-05' : '2025-01-10').toLocaleDateString('nl-NL')}</span>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => setIsContactModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer border-none"
-            >
-              <Phone size={15} fill="currentColor" />
-              <span>Contact & Loggen</span>
-            </button>
-            <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
-            >
-              <Download size={15} /> Audit Export
-            </button>
-          </div>
+          {showBreadcrumb && (
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsContactModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer border-none"
+              >
+                <Phone size={14} fill="currentColor" /> Dienst Toewijzen
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                <Download size={14} /> Audit Export
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -283,7 +289,7 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
           const desc = outcome === 'Geweigerd'
             ? `Refusal Evidence (${channel === 'call' ? 'Telefoon' : 'WhatsApp'}): "${description}" — geweigerd${reason ? `. Reden: ${reason}` : ''}`
             : `${channel === 'call' ? 'Telefoon' : 'WhatsApp'}: "${description}" — ${outcome.replace('_', ' ')}`;
-          setLocalEvents([{
+          const newEvent = {
             id: `ev-${channel}-${Date.now()}`,
             dossierId: id,
             type: eventType as any,
@@ -291,7 +297,9 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
             date: new Date().toISOString(),
             actor: 'Tim de Ruiter',
             metadata: { outcome, reason, channel } as any
-          }, ...localEvents]);
+          };
+          setLocalEvents([newEvent, ...localEvents]);
+          onEventLogged?.(newEvent);
         }}
       />
 
@@ -345,10 +353,25 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
                     mockRelationChains.filter((c: RelationChain) => c.parentId === relation?.id).map((chain: RelationChain, idx: number) => {
                       const child = mockRelations.find(r => r.id === chain.childId);
                       if (!child) return null;
+                      const isExpanded = expandedKeten.has(chain.childId);
+                      const missing = [
+                        { label: 'KVK Uittreksel', valid: child.wkaData.kvkGeldig },
+                        { label: 'BTW-ID Controle', valid: child.wkaData.btwGeldig },
+                        { label: 'Identificatie (ID)', valid: child.wkaData.idGeldig },
+                        { label: 'Verzekeringsbewijs', valid: child.wkaData.verzekeringGeldig },
+                        { label: 'Fiscaal juridisch profiel', valid: child.wkaData.modelOvereenkomstGeldig },
+                      ].filter(i => !i.valid);
                       return (
-                        <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative group hover:border-blue-200 transition-all">
-                          <div className="absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-4 h-0.5 bg-blue-100 group-hover:bg-blue-300" />
-                          <div className="flex items-center justify-between">
+                        <div key={idx} className="bg-white border border-slate-200 rounded-xl shadow-sm relative group hover:border-blue-200 transition-all overflow-hidden">
+                          <div className="absolute -left-[2.25rem] top-6 w-4 h-0.5 bg-blue-100 group-hover:bg-blue-300" />
+                          <button
+                            onClick={() => setExpandedKeten(prev => {
+                              const s = new Set(prev);
+                              s.has(chain.childId) ? s.delete(chain.childId) : s.add(chain.childId);
+                              return s;
+                            })}
+                            className="w-full p-4 flex items-center justify-between cursor-pointer text-left"
+                          >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                                 {child.type === 'ZZP' ? <User size={16} /> : <Building2 size={16} />}
@@ -358,21 +381,30 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
                                 <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Onderaannemer van {relation?.name}</p>
                               </div>
                             </div>
-                            <ComplianceBadge status={child.complianceStatus} />
-                          </div>
+                            <div className="flex items-center gap-2">
+                              <ComplianceBadge status={child.complianceStatus} />
+                              {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                            </div>
+                          </button>
+                          {isExpanded && (
+                            <div className="px-4 pb-4 border-t border-slate-100 pt-3">
+                              {missing.length === 0 ? (
+                                <p className="text-sm text-emerald-600 font-semibold">Alle documenten compleet ✓</p>
+                              ) : (
+                                <div className="flex flex-wrap gap-2">
+                                  {missing.map((item, i) => (
+                                    <span key={i} className="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-xs font-semibold">
+                                      {item.label}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })
                   )}
-                </div>
-                <div className="mt-8 p-4 bg-slate-800 text-white rounded-xl shadow-inner">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="text-blue-400" />
-                    <div>
-                      <h5 className="text-xs font-bold uppercase tracking-widest">Privacy Guardrail</h5>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Financiële afspraken zijn strikt afgeschermd.</p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

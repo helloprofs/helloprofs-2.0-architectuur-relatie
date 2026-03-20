@@ -16,6 +16,7 @@ function DossierStatusBadge({ status }: { status: DossierStatus }) {
     'Aanbod_Geaccepteerd': 'bg-teal-100 text-teal-700',
     'Contract_Lopend': 'bg-emerald-100 text-emerald-700',
     'Contract_Verlopen': 'bg-slate-100 text-slate-500',
+    'Compliance_Freeze': 'bg-yellow-100 text-yellow-700',
   };
   return (
     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${styles[status]}`}>
