@@ -2,19 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Users,
-  FolderKanban,
-  ShoppingCart,
-  Files,
-  BarChart3
-} from "lucide-react";
+import { Users, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
 const mspNavItems = [
   { name: "Relaties", href: "/client/relations", icon: Users },
+  { name: "Inkoopopdrachten", href: "/client/purchase-orders", icon: FileText },
 ];
 
 export function Sidebar() {
