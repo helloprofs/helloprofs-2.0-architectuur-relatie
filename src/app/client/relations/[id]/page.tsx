@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { DossierDetailContent } from "@/components/dossier/DossierDetailContent";
 import {
-  mockRelations, mockDossiers, mockPurchaseOrders, mockProjects, mockRelationChains,
-  ComplianceStatus, Relation, Dossier, PurchaseOrder, RelationChain
+  mockRelations, mockDossiers, mockPurchaseOrders, mockProjects,
+  ComplianceStatus, Dossier
 } from "@/lib/mock-data";
 import {
-  ArrowLeft, Building2, User, ShieldCheck, ShieldAlert, ShieldX,
-  FileText, Hammer, Users, Landmark, Clock, ChevronRight,
-  MoreVertical, Mail, Phone, MapPin, ExternalLink, Check
+  Building2, User, ShieldCheck, ShieldAlert, ShieldX,
+  FileText, Landmark, ChevronRight,
+  Mail, Phone, Check
 } from "lucide-react";
 
 // --- Components ---
@@ -34,10 +35,10 @@ function ComplianceBadge({ status }: { status: ComplianceStatus }) {
 
 export default function RelationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
 
   const relation = mockRelations.find(r => r.id === id);
   const [activeTab, setActiveTab] = useState<'overzicht' | 'inkoopopdrachten'>('overzicht');
+  const [selectedDossierId, setSelectedDossierId] = useState<string>('');
 
   if (!relation) return <div className="p-8 text-center text-slate-500">Relatie niet gevonden.</div>;
 
@@ -48,6 +49,8 @@ export default function RelationDetailPage() {
     const project = po ? mockProjects.find(p => p.id === po.projectId) : null;
     return { ...d, po, project };
   });
+
+  const selectedItem = dossiersWithPO.find(d => d.id === selectedDossierId);
 
   return (
     <div className="space-y-6">
@@ -163,56 +166,41 @@ export default function RelationDetailPage() {
                   </div>
                 )}
               </div>
-
             </div>
           )}
 
           {activeTab === 'inkoopopdrachten' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-slate-800">Inkoopopdrachten & Dossiers</h3>
-              </div>
-
+            <div className="space-y-6">
+              {/* Dropdown */}
               {dossiersWithPO.length === 0 ? (
                 <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-500">Geen actieve inkoopopdrachten gevonden voor deze relatie.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-3">
-                  {dossiersWithPO.map((item: any) => (
-                    <Link
-                      key={item.id}
-                      href={`/client/dossiers/${item.id}`}
-                      className="group flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white border border-slate-200 rounded-2xl hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                <>
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">
+                      Selecteer inkoopopdracht
+                    </label>
+                    <select
+                      value={selectedDossierId}
+                      onChange={e => setSelectedDossierId(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                     >
-                      <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                          <FileText size={24} />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase">{item.id}</span>
-                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded italic">{item.po?.type}</span>
-                          </div>
-                          <h4 className="font-bold text-slate-800 group-hover:text-blue-700 transition-colors">{item.po?.title}</h4>
-                          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 italic">
-                            <MapPin size={12} /> {item.project?.name} ({item.project?.location})
-                          </p>
-                        </div>
-                      </div>
+                      <option value="">Kies een inkoopopdracht...</option>
+                      {dossiersWithPO.map(item => (
+                        <option key={item.id} value={item.id}>
+                          {item.id} — {item.po?.title ?? 'Onbekend'} ({item.po?.type})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                      <div className="flex items-center gap-8 mt-4 sm:mt-0">
-                        <div className="text-right hidden md:block">
-                          <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Status</p>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                            {item.status.replace(/_/g, ' ')}
-                          </span>
-                        </div>
-                        <ChevronRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                  {/* Inline dossier detail */}
+                  {selectedItem && (
+                    <DossierDetailContent dossierId={selectedItem.id} />
+                  )}
+                </>
               )}
             </div>
           )}
