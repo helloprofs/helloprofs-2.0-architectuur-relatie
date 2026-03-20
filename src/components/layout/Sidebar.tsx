@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 
 const mspNavItems = [
   { name: "Relaties", href: "/client/relations", icon: Users },
-  { name: "Rapportage", href: "/client/reporting", icon: BarChart3 },
 ];
 
 export function Sidebar() {
