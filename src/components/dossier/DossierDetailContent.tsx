@@ -16,8 +16,7 @@ import {
   ShieldCheck, ShieldAlert, ShieldX, FolderKanban, Users, Building2
 } from "lucide-react";
 
-import { OutcomeOverlay } from "@/components/interaction/OutcomeOverlay";
-import { WhatsAppLink } from "@/components/interaction/WhatsAppLink";
+import { ContactModal } from "@/components/interaction/ContactModal";
 
 function ComplianceBadge({ status }: { status: ComplianceStatus }) {
   const configs: Record<ComplianceStatus, { color: string, icon: any, label: string }> = {
@@ -104,7 +103,7 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
     location: ''
   });
   const [localDeelopdrachten, setLocalDeelopdrachten] = useState(mockDeelopdrachten.filter(d => d.dossierId === id));
-  const [isOutcomeOverlayOpen, setIsOutcomeOverlayOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -213,14 +212,13 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
 
   const visibleTabs = [
     ...(isRaamopdracht ? [{ id: 'deelopdrachten', label: 'Deelopdrachten', icon: Hammer }] : []),
+    { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
     { id: 'inkoopopdracht', label: 'Inkoopopdracht', icon: FileText },
     { id: 'aanbod', label: 'Aanbod', icon: FileCheck },
+    { id: 'factuur', label: 'Facturen', icon: Receipt },
     { id: 'contract', label: 'Contract', icon: FileCheck },
     { id: 'bijlagen', label: 'Bijlagen', icon: Paperclip },
-    { id: 'communicatie', label: 'Communicatie', icon: MessageSquare },
-    { id: 'tijdlijn', label: 'Tijdlijn', icon: Clock },
     { id: 'keten', label: 'Keten-Inzicht', icon: Users },
-    { id: 'factuur', label: 'Factuur', icon: Receipt },
   ];
 
   return (
@@ -254,18 +252,12 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              onClick={() => setIsOutcomeOverlayOpen(true)}
+              onClick={() => setIsContactModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/25 transition-all cursor-pointer border-none"
             >
               <Phone size={15} fill="currentColor" />
-              <span>Bellen</span>
+              <span>Contact & Loggen</span>
             </button>
-            <WhatsAppLink
-              phone={relation?.phone || "0612345678"}
-              relationName={relation?.name || "ZZP'er"}
-              dossierId={dossier.id}
-              type="Aanbod"
-            />
             <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
@@ -276,15 +268,30 @@ export function DossierDetailContent({ dossierId, showBreadcrumb = false }: Doss
         </div>
       </div>
 
-      <OutcomeOverlay
-        isOpen={isOutcomeOverlayOpen}
-        onClose={() => setIsOutcomeOverlayOpen(false)}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
         relationName={relation?.name || 'Relatie'}
-        onSelect={(outcome, reason) => {
-          const description = outcome === 'Geweigerd'
-            ? `Refusal Evidence: Telefonische weigering vastgelegd. ${reason ? `Reden: ${reason}` : ''}`
-            : `Contact vastgelegd: ${outcome}`;
-          setLocalEvents([{ id: `ev-call-${Date.now()}`, dossierId: id, type: outcome === 'Geweigerd' ? 'refusal_evidence' : 'contact_call', description, date: new Date().toISOString(), actor: 'Tim de Ruiter', metadata: { outcome, reason, channel: 'Call' } as any }, ...localEvents]);
+        phone={relation?.phone || '0612345678'}
+        dossierId={dossier.id}
+        availablePOs={po ? [{ id: po.id, title: po.title, type: po.type }] : []}
+        defaultPOId={po?.id}
+        onLog={({ channel, outcome, description, reason }) => {
+          const eventType = outcome === 'Geweigerd'
+            ? 'refusal_evidence'
+            : channel === 'whatsapp' ? 'contact_whatsapp' : 'contact_call';
+          const desc = outcome === 'Geweigerd'
+            ? `Refusal Evidence (${channel === 'call' ? 'Telefoon' : 'WhatsApp'}): "${description}" — geweigerd${reason ? `. Reden: ${reason}` : ''}`
+            : `${channel === 'call' ? 'Telefoon' : 'WhatsApp'}: "${description}" — ${outcome.replace('_', ' ')}`;
+          setLocalEvents([{
+            id: `ev-${channel}-${Date.now()}`,
+            dossierId: id,
+            type: eventType as any,
+            description: desc,
+            date: new Date().toISOString(),
+            actor: 'Tim de Ruiter',
+            metadata: { outcome, reason, channel } as any
+          }, ...localEvents]);
         }}
       />
 
