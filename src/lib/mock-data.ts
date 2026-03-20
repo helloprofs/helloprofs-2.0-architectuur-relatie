@@ -124,6 +124,42 @@ export const mockRelations: Relation[] = [
       verzekeringGeldig: false,
       modelOvereenkomstGeldig: false
     }
+  },
+  {
+    id: 'R-004',
+    type: 'B2B_MKB',
+    name: 'Metselbedrijf De Graaf',
+    email: 'info@degraafmetsel.nl',
+    status: 'Samenwerking_Actief',
+    complianceStatus: 'Groen',
+    labels: ['Metselaar', 'Ruwbouw'],
+    dateAdded: '2025-01-20',
+    activeDossiersCount: 1,
+    wkaData: {
+      kvkGeldig: true,
+      btwGeldig: true,
+      idGeldig: true,
+      verzekeringGeldig: true,
+      modelOvereenkomstGeldig: true
+    }
+  },
+  {
+    id: 'R-005',
+    type: 'ZZP',
+    name: 'D. Bakker Tegelwerken',
+    email: 'dennis@bakkertegels.nl',
+    status: 'Samenwerking_Actief',
+    complianceStatus: 'Oranje',
+    labels: ['Tegelzetter', 'Afbouw'],
+    dateAdded: '2025-02-05',
+    activeDossiersCount: 1,
+    wkaData: {
+      kvkGeldig: true,
+      btwGeldig: true,
+      idGeldig: true,
+      verzekeringGeldig: true,
+      modelOvereenkomstGeldig: false
+    }
   }
 ];
 
@@ -133,6 +169,18 @@ export const mockRelationChains: RelationChain[] = [
     childId: 'R-001',  // Jan de Bouwer (ZZP Onderaannemer)
     type: 'Hoofdaannemer_Onderaannemer',
     dateLinked: '2025-02-20'
+  },
+  {
+    parentId: 'R-001', // Jan de Bouwer
+    childId: 'R-004', // Metselbedrijf De Graaf
+    type: 'Hoofdaannemer_Onderaannemer',
+    dateLinked: '2025-03-01'
+  },
+  {
+    parentId: 'R-001', // Jan de Bouwer
+    childId: 'R-005', // D. Bakker Tegelwerken
+    type: 'Hoofdaannemer_Onderaannemer',
+    dateLinked: '2025-03-05'
   }
 ];
 

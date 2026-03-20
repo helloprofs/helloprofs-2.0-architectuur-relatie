@@ -7,12 +7,12 @@ import { useDynamicState } from "@/hooks/use-dynamic-state";
 import {
   mockRelations,
   mockDossierEvents, mockDossierAttachments, mockDossierMessages, mockDeelopdrachten,
-  mockInvoices,
-  DossierStatus, EventType, Invoice, InvoiceLine
+  mockInvoices, mockRelationChains,
+  DossierStatus, EventType, Invoice, InvoiceLine, RelationChain
 } from "@/lib/mock-data";
 import {
   ArrowLeft, ArrowRight, Clock, FileText, FileCheck, Hammer, Receipt,
-  Paperclip, MessageSquare, Download, Plus, CheckCircle,
+  Paperclip, MessageSquare, Download, Plus, CheckCircle, ChevronRight,
   XCircle, Send, AlertTriangle, File as FileIcon, User, Phone, MessageCircle, MoreVertical,
   ShieldCheck, ShieldAlert, ShieldX, FolderKanban, Users, Building2, Landmark
 } from "lucide-react";
@@ -349,10 +349,14 @@ export default function DossierDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <Link href="/client/dossiers" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors">
-        <ArrowLeft size={15} /> Terug naar Dossiers
-      </Link>
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-slate-500">
+        <Link href="/client/relations" className="hover:text-slate-800 transition-colors font-medium">Relaties</Link>
+        <ChevronRight size={14} />
+        <Link href={`/client/relations/${relation?.id}`} className="hover:text-slate-800 transition-colors font-medium">{relation?.name}</Link>
+        <ChevronRight size={14} />
+        <span className="text-slate-900 font-bold">{po?.title}</span>
+      </nav>
 
       {/* Header Card */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -480,53 +484,52 @@ export default function DossierDetailPage() {
                 <div className="relative pl-8 pt-4 space-y-4">
                   <div className="absolute left-6 top-0 bottom-4 w-0.5 bg-blue-100" />
                   
-                  {/* Mock Subcontractor */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative">
-                    <div className="absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-4 h-0.5 bg-blue-100" />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                          <Building2 size={16} />
+                  {mockRelationChains.filter((c: RelationChain) => c.parentId === relation?.id).length === 0 ? (
+                    <div className="text-xs text-slate-400 italic py-4">Geen actieve onderaannemers geregistreerd in de keten voor dit dossier.</div>
+                  ) : (
+                    mockRelationChains.filter((c: RelationChain) => c.parentId === relation?.id).map((chain: RelationChain, idx: number) => {
+                      const child = mockRelations.find(r => r.id === chain.childId);
+                      if (!child) return null;
+                      
+                      return (
+                        <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative group hover:border-blue-200 transition-all">
+                          <div className="absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-4 h-0.5 bg-blue-100 group-hover:bg-blue-300" />
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                {child.type === 'ZZP' ? <User size={16} /> : <Building2 size={16} />}
+                              </div>
+                              <div>
+                                <h5 className="text-sm font-bold text-slate-800">{child.name} <span className="text-[10px] text-slate-400 font-medium ml-1">({child.id})</span></h5>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Onderaannemer van {relation?.name}</p>
+                              </div>
+                            </div>
+                            <ComplianceBadge status={child.complianceStatus} />
+                          </div>
+                          
+                          {/* Compliance Details */}
+                          <div className="mt-4 pt-3 border-t border-slate-50 flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-wider">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${child.wkaData.kvkGeldig ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                              <span className={child.wkaData.kvkGeldig ? 'text-slate-400' : 'text-rose-600'}>WKA Documenten {child.wkaData.kvkGeldig ? 'OK' : 'Kritiek'}</span>
+                            </div>
+                            {child.gRekening && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                <span className="text-slate-400">G-Rekening Actief</span>
+                              </div>
+                            )}
+                            {!child.wkaData.kvkGeldig && (
+                              <div className="flex items-center gap-2 text-rose-600">
+                                <AlertTriangle size={12} />
+                                <span>Actie Vereist</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h5 className="text-sm font-bold text-slate-800">Metselbedrijf De Graaf <span className="text-[10px] text-slate-400 font-medium ml-1">(Relatie C)</span></h5>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Onderaannemer van {relation?.name}</p>
-                        </div>
-                      </div>
-                      <ComplianceBadge status="Groen" />
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-slate-50 grid grid-cols-2 gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                       <div className="flex items-center gap-2">
-                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                         <span>WKA Documenten OK</span>
-                       </div>
-                       <div className="flex items-center gap-2">
-                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                         <span>G-Rekening Actief</span>
-                       </div>
-                    </div>
-                  </div>
-
-                  {/* Mock Subcontractor 2 */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative">
-                    <div className="absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-4 h-0.5 bg-blue-100" />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                          <User size={16} />
-                        </div>
-                        <div>
-                          <h5 className="text-sm font-bold text-slate-800">D. Bakker Tegelwerken <span className="text-[10px] text-slate-400 font-medium ml-1">(Relatie C)</span></h5>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Onderaannemer van {relation?.name}</p>
-                        </div>
-                      </div>
-                      <ComplianceBadge status="Oranje" />
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-slate-50 text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-2">
-                       <AlertTriangle size={12} />
-                       <span>KVK Uittreksel Verouderd</span>
-                    </div>
-                  </div>
+                      );
+                    })
+                  )}
                 </div>
 
                 <div className="mt-8 p-4 bg-slate-800 text-white rounded-xl shadow-inner">
