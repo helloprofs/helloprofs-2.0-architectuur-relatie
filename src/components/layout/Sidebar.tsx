@@ -17,7 +17,7 @@ export function Sidebar() {
   return (
     <aside style={{ width: "260px", minWidth: "260px" }} className="flex flex-col h-screen bg-slate-900 border-r border-slate-800">
       {/* Logo */}
-      <Link href="/client/dashboard" className="flex items-center gap-3 px-6 h-16 border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
+      <Link href="/client/relations" className="flex items-center gap-3 px-6 h-16 border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
         <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
           <span className="text-white font-bold text-sm">h</span>
         </div>
